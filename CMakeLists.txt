@@ -10,3 +10,4 @@ project(SDKTOOLS
 add_executable(SDKTOOLSexe 	Source.cpp)
 target_include_directories(SDKTOOLSexe PRIVATE wu_camera-sdk/inc)
 target_link_directories(SDKTOOLSexe PRIVATE wu_camera-sdk/lib)
+target_compile_features(SDKTOOLSexe PRIVATE cxx_std_17)
