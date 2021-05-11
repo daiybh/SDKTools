@@ -7,7 +7,7 @@ project(SDKTOOLS
 	HOMEPAGE_URL "https://github.com/northwindtraders/beicode"
 	LANGUAGES CXX)
 
-add_executable(SDKTOOLSexe 	Source.cpp)
-target_include_directories(SDKTOOLSexe PRIVATE wu_camera-sdk/inc)
-target_link_directories(SDKTOOLSexe PRIVATE wu_camera-sdk/lib)
-target_compile_features(SDKTOOLSexe PRIVATE cxx_std_17)
+add_executable(SDKTOOLS 	Source.cpp)
+target_include_directories(SDKTOOLS PRIVATE wu_camera-sdk/inc)
+target_link_directories(SDKTOOLS PRIVATE wu_camera-sdk/lib)
+target_compile_features(SDKTOOLS PRIVATE cxx_std_17)
