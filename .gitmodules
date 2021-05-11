@@ -1,0 +1,3 @@
+[submodule "wu_camera-sdk"]
+	path = wu_camera-sdk
+	url = git@github.com:daiybh/wu_camera-sdk.git
