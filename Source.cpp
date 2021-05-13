@@ -69,13 +69,26 @@ public:
 	{
 		char szBuf1[MAX_PATH];
 		char szKey[MAX_PATH];
+		char szApp[MAX_PATH];
 		int nret = 0;
 		
+		bool ipValid = false;
+		for (int i = 0; i < 4; i++)
+		{
+			sprintf_s(szKey, "ip_%d", i + 1);
+			nret = getConfigString("main", szKey, szBuf1);
+			if (nret > 0)
+			{
+				cameraOBJ[i].ip = szBuf1;
+				ipValid = true;
+			}
+		}
+
 		bool isvalidTime = false;
 		for (int i = 0; i < 4; i++)
 		{
-			sprintf_s(szKey, "time%d", i + 1);
-			nret = getConfigString("main", szKey, szBuf1);
+			sprintf_s(szKey, "%d", i + 1);
+			nret = getConfigString(szKey, "runtime", szBuf1);
 			if (nret > 0)
 			{
 				std::string s(szBuf1);
@@ -89,29 +102,16 @@ public:
 				szBuf1[pos1] = '\0';
 				szBuf1[pos2] = '\0';
 
-				cameraOBJ[i].workTime.tm_hour = atoi(szBuf1);
-				cameraOBJ[i].workTime.tm_min = atoi(szBuf1 + pos1 + 1);
-				cameraOBJ[i].workTime.tm_sec = atoi(szBuf1 + pos2 + 1);
+				paramOBJ[i].workTime.tm_hour = atoi(szBuf1);
+				paramOBJ[i].workTime.tm_min = atoi(szBuf1 + pos1 + 1);
+				paramOBJ[i].workTime.tm_sec = atoi(szBuf1 + pos2 + 1);
 				isvalidTime=true;
+				paramOBJ[i].isValid = true;
 			}
-		}
-		bool ipValid = false;
-		for (int i = 0; i < 4; i++)
-		{
-			sprintf_s(szKey, "ip_%d", i + 1);
-			nret = getConfigString("main", szKey, szBuf1);
-			if (nret > 0)
-			{
-				cameraOBJ[i].ip = szBuf1;
-				ipValid = true;
-			}
-		}
-		for (int i = 0; i < 4; i++)
-		{
-			sprintf_s(szKey, "%d", i + 1);
-			cameraOBJ[i].param.AEMaxTime = getConfigInt(szKey, "AEMaxTime");
-			cameraOBJ[i].param.AVGLight = getConfigInt(szKey, "AVGLight");
-			cameraOBJ[i].param.AGain = getConfigInt(szKey, "AGain");
+		
+			paramOBJ[i].param.AEMaxTime = getConfigInt(szKey, "AEMaxTime");
+			paramOBJ[i].param.AVGLight = getConfigInt(szKey, "AVGLight");
+			paramOBJ[i].param.AGain = getConfigInt(szKey, "AGain");			
 		}
 		
 		if (!isvalidTime)
@@ -144,8 +144,14 @@ public:
 		std::string ip;
 		bool isValid()
 		{
-			return !ip.empty() && workTime.isValid;
+			return !ip.empty();
 		}
+		
+		uint64_t lastRunTime;
+	};
+
+	struct ParamObj
+	{
 		struct MyTM
 		{
 			bool isValid = false;
@@ -154,9 +160,10 @@ public:
 			int tm_hour; // hours since midnight - [0, 23]
 		};
 		struct MyTM workTime;
+		bool isValid=false;
 		NET_DEV_CAMERAPARAM_V1 param;
-		uint64_t lastRunTime;
 	};
+	ParamObj  paramOBJ[4];
 	CameraOBJ cameraOBJ[4];
 	bool bWriteIni = false;
 
@@ -171,22 +178,29 @@ public:
 	{
 		for (int i = 0; i < 4; i++)
 		{
-			if (!config.cameraOBJ[i].isValid())
-				continue;
-
+			if(!config.paramOBJ[i].isValid)continue;
 			struct tm local;
 			time_t t;
 			t = time(NULL);
 			localtime_s(&local, &t);
-			bool bNeedRestart2 = (local.tm_hour == config.cameraOBJ[i].workTime.tm_hour && local.tm_min == config.cameraOBJ[i].workTime.tm_min);
-			if (bNeedRestart2 && (GetTickCount() - config.cameraOBJ[i].lastRunTime > 1000 * 60 * 2))
+			bool bNeedRestart2 = (local.tm_hour == config.paramOBJ[i].workTime.tm_hour && local.tm_min == config.paramOBJ[i].workTime.tm_min);
+			if (bNeedRestart2)
 			{
-				SPDLOG_INFO("{} setParam", i);
-				config.cameraOBJ[i].lastRunTime = GetTickCount();
-				CCamera camera;
-				strcpy(camera.m_ipaddrstr, config.cameraOBJ[i].ip.data());
-				camera.connect();
-				camera.set_3A_PARAM_V1(config.cameraOBJ[i].param); /**/
+				for (int j = 0; j < 4; j++)
+				{
+					if (!config.cameraOBJ[i].isValid())
+						continue;
+					if ((GetTickCount() - config.cameraOBJ[i].lastRunTime > 1000 * 60 * 2))
+					{
+						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>>begin",i, j,config.cameraOBJ[i].ip);
+						config.cameraOBJ[i].lastRunTime = GetTickCount();
+						CCamera camera;
+						strcpy(camera.m_ipaddrstr, config.cameraOBJ[i].ip.data());
+						camera.connect();
+						camera.set_3A_PARAM_V1(config.paramOBJ[i].param); /**/
+						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>>done", i, j, config.cameraOBJ[i].ip);
+					}
+				}
 			}
 		}
 	}
