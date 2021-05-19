@@ -3,6 +3,7 @@
 #include <Shlwapi.h>
 #pragma comment(lib, "Shlwapi.lib")
 
+#include <fmt/format.h>
 #define SPDLOG_ACTIVE_LEVEL 0
 #include <spdlog/spdlog.h>
 #include "spdlog/sinks/daily_file_sink.h"
@@ -80,6 +81,7 @@ public:
 			if (nret > 0)
 			{
 				cameraOBJ[i].ip = szBuf1;
+				strcpy(cameraOBJ[i].camera.m_ipaddrstr, szBuf1);
 				ipValid = true;
 			}
 		}
@@ -146,7 +148,7 @@ public:
 		{
 			return !ip.empty();
 		}
-		
+		CCamera camera;
 		uint64_t lastRunTime;
 	};
 
@@ -194,10 +196,10 @@ public:
 					{
 						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>>begin",i, j,config.cameraOBJ[i].ip);
 						config.cameraOBJ[i].lastRunTime = GetTickCount();
-						CCamera camera;
-						strcpy(camera.m_ipaddrstr, config.cameraOBJ[i].ip.data());
-						camera.connect();
-						camera.set_3A_PARAM_V1(config.paramOBJ[i].param); /**/
+						
+						
+						config.cameraOBJ[i].camera.connect();
+						config.cameraOBJ[i].camera.set_3A_PARAM_V1(config.paramOBJ[i].param); /**/
 						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>>done", i, j, config.cameraOBJ[i].ip);
 					}
 				}
