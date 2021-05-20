@@ -46,6 +46,11 @@ inline void initLogger(const char *folderPath)
 	spdlog::flush_on(spdlog::level::info);
 }
 #include <filesystem>
+
+	static	void CALLBACK addLog(const char *log, void *UserParam)
+		{
+			SPDLOG_ERROR("addLog....{}" ,log);
+		}
 class Config
 {
 public:
@@ -150,6 +155,11 @@ public:
 		}
 		CCamera camera;
 		uint64_t lastRunTime;
+		CameraOBJ()
+		{
+			camera._ADD_LOG = addLog;
+		}
+
 	};
 
 	struct ParamObj
@@ -199,8 +209,8 @@ public:
 						
 						
 						config.cameraOBJ[i].camera.connect();
-						config.cameraOBJ[i].camera.set_3A_PARAM_V1(config.paramOBJ[i].param); /**/
-						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>>done", i, j, config.cameraOBJ[i].ip);
+						bool ret = config.cameraOBJ[i].camera.set_3A_PARAM_V1(config.paramOBJ[i].param); /**/
+						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>> {}", i, j, config.cameraOBJ[i].ip,ret?"Sccuess":"faild");
 					}
 				}
 			}
