@@ -207,7 +207,7 @@ public:
 						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>>begin",i, j,config.cameraOBJ[i].ip);
 						config.cameraOBJ[i].lastRunTime = GetTickCount();
 						
-						
+
 						config.cameraOBJ[i].camera.connect();
 						bool ret = config.cameraOBJ[i].camera.set_3A_PARAM_V1(config.paramOBJ[i].param); /**/
 						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>> {}", i, j, config.cameraOBJ[i].ip,ret?"Sccuess":"faild");
@@ -222,10 +222,32 @@ public:
 	{
 		if (!config.isvalid)
 			return;
-		if (argc > 1)
-			config.bWriteIni = true;
+			
 
 		config.load();
+
+		if (argc > 1)
+		{
+			for (int j = 0;; j++)
+			{
+				struct tm local;
+				time_t t;
+				t = time(NULL);
+				localtime_s(&local, &t);
+				for (int i = 0; i < 4; i++)
+				{
+					bool isValid = false;
+					int tm_sec;	 // seconds after the minute - [0, 60] including leap second
+					int tm_min;	 // minutes after the hour - [0, 59]
+					int tm_hour; // hours since midnight - [0, 23]
+					config.paramOBJ[i].workTime = { true,local.tm_sec,local.tm_min,local.tm_hour };;
+					config.cameraOBJ[i].lastRunTime = 0;
+				}
+				doWork();
+				printf("\n press any key to continue");
+				getchar();
+			}
+		}
 		auto a = std::thread([&]()
 							 {
 								 while (1)
@@ -241,7 +263,7 @@ public:
 int main(int argc, char *argv[])
 {
 	initLogger(nullptr);
-	printf("\n----------SDKTOOls  ----\n");
+	printf("\n----------SDKTOOls  ----\n");	
 	Worker worker;
 	worker.start(argc);
 	return 0;
