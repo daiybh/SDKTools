@@ -132,6 +132,17 @@ public:
 			return false;
 		}
 		isvalid = ipValid&& isvalidTime;
+		for(int i=0;i< 4;i++)
+		{
+			SPDLOG_ERROR("IP: {}",cameraOBJ[i].ip);
+		}
+		for(int i=0;i< 4;i++)
+		{
+			SPDLOG_ERROR("param aemaxTime:{} AVGlight:{} AGain:{}"
+			,paramOBJ[i].param.AEMaxTime
+			,paramOBJ[i].param.AVGLight
+			,paramOBJ[i].param.AGain);
+		}
 		return true;
 	}
 	int getConfigInt(const char *szApp, const char *szKey)
@@ -209,8 +220,8 @@ public:
 						
 
 						config.cameraOBJ[i].camera.connect();
-						bool ret = config.cameraOBJ[i].camera.set_3A_PARAM_V1(config.paramOBJ[i].param); /**/
-						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>> {}", i, j, config.cameraOBJ[i].ip,ret?"Sccuess":"faild");
+						int ret = config.cameraOBJ[i].camera.set_3A_PARAM_V1(config.paramOBJ[i].param); /**/
+						SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>> {},{}", i, j, config.cameraOBJ[i].ip,(ret==0)?"Sccuess":"faild",ret);
 					}
 				}
 			}
