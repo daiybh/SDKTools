@@ -45,7 +45,7 @@ in_memory_zip = io.BytesIO()
 z = zipfile.ZipFile(in_memory_zip,'w',zipfile.ZIP_DEFLATED)
 flist=[r'sdktools.exe',r'sdktools.pdb']
 for a in flist:
-    z.write(r'build/'+a,a)
+    z.write(r'out/build/x86-Release/'+a,a)
 
 z.close()
 
