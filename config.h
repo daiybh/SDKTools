@@ -66,7 +66,6 @@ public:
 
 		bool ipValid = false;
 		
-		bool isvalidTime = false;
 		for (int i = 0; i < 4; i++)
 		{
 			sprintf_s(szKey, "%d", i + 1);
@@ -104,18 +103,16 @@ public:
 
 				if (nret <1 && !getTimeFunc(szBuf1,cameraOBJ[i].paramOBJ[j].stime))
 				{					
-					isvalidTime = false;
+					SPDLOG_ERROR("read cam[{}]  sstime [{}] error, skip", i, j);
+					continue;;
 				}
 				nret = getConfigString(szKey, fmt::format("etime{}", j).data(), szBuf1);
 				if (nret < 0 && !getTimeFunc(szBuf1, cameraOBJ[i].paramOBJ[j].etime))
 				{
-					isvalidTime = false;
-				}
-				if (!isvalidTime)
-				{
-					SPDLOG_ERROR("read cam[{}]  time [{}] error, skip", i, j);
+					SPDLOG_ERROR("read cam[{}] eetime [{}] error, skip", i, j);
 					continue;;
-				}	
+				}
+				
 				cameraOBJ[i].paramOBJ[j].isValid = true;
 
 					/*
@@ -136,7 +133,7 @@ public:
 			SPDLOG_ERROR("read [main][ip_X] error, no one was valid! exit");
 			return false;
 		}
-		isvalid = ipValid && isvalidTime;
+		isvalid = ipValid ;
 		for (int i = 0; i < 4; i++)
 		{
 			SPDLOG_ERROR("IP: {}", cameraOBJ[i].ip);
