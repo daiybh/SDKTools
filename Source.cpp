@@ -59,6 +59,7 @@ public:
 		t = time(NULL);
 		localtime_s(&local, &t);
 
+
 		for (int j = 0; j < 4; j++)
 		{
 			if (!config.cameraOBJ[j].isValid())continue;
