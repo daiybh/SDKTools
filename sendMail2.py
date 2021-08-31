@@ -43,7 +43,7 @@ def sendMail_189(subject,text,z,zip_name):
 
 in_memory_zip = io.BytesIO()
 z = zipfile.ZipFile(in_memory_zip,'w',zipfile.ZIP_DEFLATED)
-flist=[r'sdktools.pdb',r'sdktools.exe']
+flist=[r'sdktools.pdb',r'sdktools.exe','sdkTool_Config.ini']
 for a in flist:
     z.write(r'out/build/x86-Release/'+a,a)
 

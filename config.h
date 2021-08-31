@@ -70,11 +70,11 @@ public:
 		{
 			sprintf_s(szKey, "%d", i + 1);
 			
-			nret = getConfigString(szKey, fmt::format("ip_{}", i).data(), szBuf1);
+			nret = getConfigString(szKey, "ip", szBuf1);
 			if (nret < 7)//1.1.1.1
 			{
 				SPDLOG_ERROR("read ip_{} error, skip",i);
-				continue;;
+				if (!bWriteIni)continue;;
 			}
 			cameraOBJ[i].ip = szBuf1;
 			strcpy(cameraOBJ[i].camera.m_ipaddrstr, szBuf1);
@@ -104,13 +104,13 @@ public:
 				if (nret <1 && !getTimeFunc(szBuf1,cameraOBJ[i].paramOBJ[j].stime))
 				{					
 					SPDLOG_ERROR("read cam[{}]  sstime [{}] error, skip", i, j);
-					continue;;
+					if(!bWriteIni)continue;;
 				}
 				nret = getConfigString(szKey, fmt::format("etime{}", j).data(), szBuf1);
 				if (nret < 0 && !getTimeFunc(szBuf1, cameraOBJ[i].paramOBJ[j].etime))
 				{
 					SPDLOG_ERROR("read cam[{}] eetime [{}] error, skip", i, j);
-					continue;;
+					if (!bWriteIni)continue;;
 				}
 				
 				cameraOBJ[i].paramOBJ[j].isValid = true;
@@ -122,9 +122,9 @@ public:
 					AVGLight2 =
 					AGain2 =
 					Dlight3 =*/
-				cameraOBJ[i].paramOBJ[j].param.AEMaxTime = getConfigInt(szKey, "AEMaxTime");
-				cameraOBJ[i].paramOBJ[j].param.AVGLight = getConfigInt(szKey, "AVGLight");
-				cameraOBJ[i].paramOBJ[j].param.AGain = getConfigInt(szKey, "AGain");
+				cameraOBJ[i].paramOBJ[j].param.AEMaxTime = getConfigInt(szKey, fmt::format("AEMaxTime{}",j).data());
+				cameraOBJ[i].paramOBJ[j].param.AVGLight = getConfigInt(szKey, fmt::format("AVGLight{}",j).data());
+				cameraOBJ[i].paramOBJ[j].param.AGain = getConfigInt(szKey, fmt::format("AGain{}",j).data());
 			}
 		}
 
