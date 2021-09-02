@@ -101,13 +101,13 @@ public:
 					return true;
 				};
 
-				if (nret <1 && !getTimeFunc(szBuf1,cameraOBJ[i].paramOBJ[j].stime))
+				if (nret <1 || !getTimeFunc(szBuf1,cameraOBJ[i].paramOBJ[j].stime))
 				{					
 					SPDLOG_ERROR("read cam[{}]  sstime [{}] error, skip", i, j);
 					if(!bWriteIni)continue;;
 				}
 				nret = getConfigString(szKey, fmt::format("etime{}", j).data(), szBuf1);
-				if (nret < 0 && !getTimeFunc(szBuf1, cameraOBJ[i].paramOBJ[j].etime))
+				if (nret < 0 || !getTimeFunc(szBuf1, cameraOBJ[i].paramOBJ[j].etime))
 				{
 					SPDLOG_ERROR("read cam[{}] eetime [{}] error, skip", i, j);
 					if (!bWriteIni)continue;;
