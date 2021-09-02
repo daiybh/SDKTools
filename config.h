@@ -178,8 +178,20 @@ public:
 		bool isNeedRun(struct tm& local) {
 
 			auto isInside = [&](struct tm&local) {
-				bool bNeedRestart1 = (local.tm_hour >= stime.tm_hour && local.tm_min >= stime.tm_min && local.tm_sec >= stime.tm_sec);
-				bool bNeedRestart2 = (local.tm_hour <= etime.tm_hour && local.tm_min <= etime.tm_min && local.tm_sec <= etime.tm_sec);
+				auto pbigger = [&](MyTM& a) {
+					if (local.tm_hour < a.tm_hour)return false;
+					if (local.tm_min < a.tm_min)return false;
+					if (local.tm_sec < a.tm_sec)return false;
+					return true;
+				};
+				auto pletter = [&](MyTM& a) {
+					if (local.tm_hour > a.tm_hour)return false;
+					if (local.tm_min > a.tm_min)return false;
+					if (local.tm_sec > a.tm_sec)return false;
+					return true;
+				};
+				bool bNeedRestart1 = pbigger(stime);
+				bool bNeedRestart2 = pletter(etime);
 				return bNeedRestart1 && bNeedRestart2;
 			};
 			if (!isInside(local))return false;
