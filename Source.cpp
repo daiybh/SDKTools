@@ -67,6 +67,7 @@ public:
 			{
 				if (!config.cameraOBJ[j].paramOBJ[i].isValid)
 					continue;
+				SPDLOG_INFO("time[{}]---> camera[{},{}]  xxxxxx", i, j, config.cameraOBJ[j].ip);
 
 				if (config.cameraOBJ[j].paramOBJ[i].isNeedRun(local))
 				{

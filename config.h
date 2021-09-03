@@ -180,13 +180,17 @@ public:
 			auto isInside = [&](struct tm&local) {
 				auto pbigger = [&](MyTM& a) {
 					if (local.tm_hour < a.tm_hour)return false;
+					if (local.tm_hour > a.tm_hour)return true;
 					if (local.tm_min < a.tm_min)return false;
+					if (local.tm_min > a.tm_min)return true;
 					if (local.tm_sec < a.tm_sec)return false;
 					return true;
 				};
 				auto pletter = [&](MyTM& a) {
 					if (local.tm_hour > a.tm_hour)return false;
+					if (local.tm_hour < a.tm_hour)return true;
 					if (local.tm_min > a.tm_min)return false;
+					if (local.tm_min < a.tm_min)return true;
 					if (local.tm_sec > a.tm_sec)return false;
 					return true;
 				};
