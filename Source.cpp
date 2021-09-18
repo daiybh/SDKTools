@@ -76,7 +76,7 @@ public:
 					int ret = config.cameraOBJ[j].camera.set_3A_PARAM_V1(config.cameraOBJ[j].paramOBJ[i].cameraParam); /**/
 					SPDLOG_INFO("time[{}]---> camera[{},{}]  to setcameraParam>>> {},{}", i, j, config.cameraOBJ[i].ip, (ret == 0) ? "Sccuess" : "faild", ret);
 
-					int ret = config.cameraOBJ[j].camera.set_EYEST_NET_SET_LIGHT_PARAM(config.cameraOBJ[j].paramOBJ[i].lightParam); /**/
+					ret = config.cameraOBJ[j].camera.set_EYEST_NET_SET_LIGHT_PARAM(config.cameraOBJ[j].paramOBJ[i].lightParam); /**/
 					SPDLOG_INFO("time[{}]---> camera[{},{}]  to setLightParam>>> {},{}", i, j, config.cameraOBJ[i].ip, (ret == 0) ? "Sccuess" : "faild", ret);
 
 					
