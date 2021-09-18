@@ -122,9 +122,10 @@ public:
 					AVGLight2 =
 					AGain2 =
 					Dlight3 =*/
-				cameraOBJ[i].paramOBJ[j].param.AEMaxTime = getConfigInt(szKey, fmt::format("AEMaxTime{}",j).data());
-				cameraOBJ[i].paramOBJ[j].param.AVGLight = getConfigInt(szKey, fmt::format("AVGLight{}",j).data());
-				cameraOBJ[i].paramOBJ[j].param.AGain = getConfigInt(szKey, fmt::format("AGain{}",j).data());
+				cameraOBJ[i].paramOBJ[j].cameraParam.AEMaxTime = getConfigInt(szKey, fmt::format("AEMaxTime{}",j).data());
+				cameraOBJ[i].paramOBJ[j].cameraParam.AVGLight = getConfigInt(szKey, fmt::format("AVGLight{}",j).data());
+				cameraOBJ[i].paramOBJ[j].cameraParam.AGain = getConfigInt(szKey, fmt::format("AGain{}", j).data());
+				cameraOBJ[i].paramOBJ[j].lightParam.light = getConfigInt(szKey, fmt::format("Dlight{}", j).data());
 			}
 		}
 
@@ -171,7 +172,8 @@ public:
 		struct tm lastRunTime;
 		bool isFirstRun = true;
 		bool isValid = false;
-		NET_DEV_CAMERAPARAM_V1 param;
+		NET_DEV_CAMERAPARAM_V1 cameraParam;
+		NET_DEV_LIGHT_CFG  lightParam;
 		ParamObj() {
 			memset(&lastRunTime, 0, sizeof(tm));
 		}
