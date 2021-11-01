@@ -126,6 +126,8 @@ public:
 				cameraOBJ[i].paramOBJ[j].cameraParam.AVGLight = getConfigInt(szKey, fmt::format("AVGLight{}",j).data());
 				cameraOBJ[i].paramOBJ[j].cameraParam.AGain = getConfigInt(szKey, fmt::format("AGain{}", j).data());
 				cameraOBJ[i].paramOBJ[j].lightParam.light = getConfigInt(szKey, fmt::format("Dlight{}", j).data());
+				cameraOBJ[i].paramOBJ[j].voice_volume     = getConfigInt(szKey, fmt::format("voice{}", j).data());
+				
 			}
 		}
 
@@ -174,6 +176,7 @@ public:
 		bool isValid = false;
 		NET_DEV_CAMERAPARAM_V1 cameraParam;
 		NET_DEV_LIGHT_CFG  lightParam;
+		int voice_volume = 0;
 		ParamObj() {
 			memset(&lastRunTime, 0, sizeof(tm));
 		}
