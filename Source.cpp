@@ -79,7 +79,7 @@ public:
 					ret = config.cameraOBJ[j].camera.set_EYEST_NET_SET_LIGHT_PARAM(config.cameraOBJ[j].paramOBJ[i].lightParam); /**/
 					SPDLOG_INFO("time[{}]---> camera[{},{}]  to setLightParam>>> {},{}", i, j, config.cameraOBJ[i].ip, (ret == 0) ? "Sccuess" : "faild", ret);
 
-					bool bret = config.cameraOBJ[j].camera.chageVOLUME(config.cameraOBJ[j].paramOBJ[i].voice);
+					bool bret = config.cameraOBJ[j].camera.chageVOLUME(config.cameraOBJ[j].paramOBJ[i].voice_volume);
 					SPDLOG_INFO("time[{}]---> camera[{},{}]  to chageVOLUME>>> {},{}", i, j, config.cameraOBJ[i].ip, (bret) ? "Sccuess" : "faild", ret);					
 				}
 			}
