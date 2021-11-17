@@ -138,8 +138,19 @@ public:
 		updateScreen.join();
 	}
 };
+#include "dbghelper.h"
 int main(int argc, char *argv[])
 {
+	HANDLE mutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, "store.hyman.sdk_TOOLs.Mutex");
+	if (mutex == nullptr)
+		mutex = CreateMutexA(nullptr, FALSE, "store.hyman.sdk_TOOLs.Mutex");
+	else
+	{
+		CloseHandle(mutex);
+		return EXIT_FAILURE;
+	}
+
+	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)ApplicationCrashHandler);
 	initLogger(nullptr);
 	printf("\n----------SDKTOOls  ----\n");
 	Worker worker;
