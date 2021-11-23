@@ -46,7 +46,7 @@ z = zipfile.ZipFile(in_memory_zip,'w',zipfile.ZIP_DEFLATED)
 flist=[r'sdktools.pdb',r'sdktools.exe']
 for a in flist:
     z.write(r'out/build/x86-Release/'+a,a)
-
+z.write(r'openDump.bat','openDump.bat')
 z.close()
 
 
