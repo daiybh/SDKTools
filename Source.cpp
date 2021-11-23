@@ -9,6 +9,15 @@
 #include "spdlog/sinks/daily_file_sink.h"
 #include "spdlog/sinks/stdout_color_sinks.h"
 #include "spdlog/sinks/rotating_file_sink.h"
+#include <filesystem>
+#include "config.h"
+
+#include "ConsoleUtil.h"
+#include "dbghelper.h"
+#include <iostream>
+#include <sstream>
+#include <iomanip>
+#include <ctime>
 inline void initLogger(const char *folderPath)
 {
 	if (folderPath == nullptr)
@@ -45,13 +54,24 @@ inline void initLogger(const char *folderPath)
 	spdlog::flush_every(std::chrono::seconds(5));
 	spdlog::flush_on(spdlog::level::info);
 }
-#include <filesystem>
-#include "config.h"
 
-#include "ConsoleUtil.h"
 class Worker
 {
 public:
+	void doRestartDev(struct tm& local) {
+		if (!config.m_RestartParam.isNeedRun(local))return;
+		SPDLOG_INFO("##############Restart cam   begin##############");
+		for (auto ip : config.m_RestartParam.m_IPs)
+		{
+			CCamera  ca;
+			strcpy(ca.m_ipaddrstr, ip.c_str());
+			ca.connect();
+			int ret = ca.set_EYEST_NET_RESTART();
+			SPDLOG_INFO("Restart cam[{}]  result:{},{}", ip, (ret == 0) ? "Sccuess" : "faild", ret);
+		}
+
+		SPDLOG_INFO("##############Restart cam   END##############");
+	}
 	void doWork()
 	{
 		struct tm local;
@@ -59,6 +79,7 @@ public:
 		t = time(NULL);
 		localtime_s(&local, &t);
 
+		doRestartDev(local);
 
 		for (int j = 0; j < 4; j++)
 		{
@@ -91,11 +112,9 @@ public:
 
 	void start(int argc)
 	{
-		if (!config.isvalid)
-			return;
 
 		config.load();
-
+		
 		
 		auto updateScreen = std::thread([&]()
 										{
@@ -138,7 +157,54 @@ public:
 		updateScreen.join();
 	}
 };
-#include "dbghelper.h"
+
+void SetQuickEditMode(bool _enable)
+{
+	HANDLE hStdin = GetStdHandle(STD_INPUT_HANDLE);
+	DWORD  mode;
+	GetConsoleMode(hStdin, &mode);
+	if (_enable)
+		mode |= ENABLE_QUICK_EDIT_MODE;
+	else
+		mode &= ~ENABLE_QUICK_EDIT_MODE;
+	SetConsoleMode(hStdin, mode);
+}
+BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
+{
+	switch (fdwCtrlType)
+	{
+		// Handle the CTRL-C signal.
+	case CTRL_C_EVENT:
+		printf("Ctrl-C event\n\n");
+		Beep(750, 300);
+		return TRUE;
+
+		// CTRL-CLOSE: confirm that the user wants to exit.
+	case CTRL_CLOSE_EVENT:
+		Beep(600, 200);
+		printf("Ctrl-Close event\n\n");
+		return TRUE;
+
+		// Pass other signals to the next handler.
+	case CTRL_BREAK_EVENT:
+		Beep(900, 200);
+		printf("Ctrl-Break event\n\n");
+		return TRUE;
+
+	case CTRL_LOGOFF_EVENT:
+		Beep(1000, 200);
+		printf("Ctrl-Logoff event\n\n");
+		return TRUE;
+
+	case CTRL_SHUTDOWN_EVENT:
+		Beep(750, 500);
+		printf("Ctrl-Shutdown event\n\n");
+		return TRUE;
+
+	default:
+		return FALSE;
+	}
+}
 int main(int argc, char *argv[])
 {
 	HANDLE mutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, "store.hyman.sdk_TOOLs.Mutex");
@@ -149,7 +215,13 @@ int main(int argc, char *argv[])
 		CloseHandle(mutex);
 		return EXIT_FAILURE;
 	}
+	SetQuickEditMode(false);
+	EnableMenuItem(GetSystemMenu(GetConsoleWindow(), FALSE), SC_CLOSE, MF_GRAYED);
+	ShowWindow(GetConsoleWindow(), SW_MINIMIZE);
+	if (SetConsoleCtrlHandler(CtrlHandler, TRUE))
+	{
 
+	}
 	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)ApplicationCrashHandler);
 	initLogger(nullptr);
 	printf("\n----------SDKTOOls  ----\n");

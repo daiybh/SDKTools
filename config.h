@@ -56,7 +56,30 @@ public:
 		}
 		load();
 	}
-	bool isvalid = false;
+	void loadResartParam() {
+		
+			char szBuf1[MAX_PATH];
+		char szKey[MAX_PATH];
+		char szApp[MAX_PATH];
+		int nret = 0;
+
+		bool ipValid = false;
+
+
+		nret = getConfigString("restart", "time", szBuf1);
+		m_RestartParam.stime.getTimeFunc(szBuf1);
+		for (int i = 0; i < 10; i++)
+		{
+			sprintf_s(szKey, "IP%d", i + 1);
+			nret = getConfigString("restart", szKey, szBuf1);
+			if (nret < 7) {
+				SPDLOG_ERROR("restart ->read ip_{} error, skip", i);
+				if (!bWriteIni)continue;
+			}
+			m_RestartParam.m_IPs.emplace_back(szBuf1);
+		}
+
+	}
 	bool load()
 	{
 		char szBuf1[MAX_PATH];
@@ -66,6 +89,9 @@ public:
 
 		bool ipValid = false;
 		
+
+		loadResartParam();
+
 		for (int i = 0; i < 4; i++)
 		{
 			sprintf_s(szKey, "%d", i + 1);
@@ -83,31 +109,15 @@ public:
 			for (int j = 0; j < 4; j++)
 			{
 				nret = getConfigString(szKey, fmt::format("stime{}", j).data(), szBuf1);
-				auto getTimeFunc = [&](char* szBuf1, ParamObj::MyTM& workTime) {
-					std::string s(szBuf1);
-					auto pos1 = s.find(":");
-					if (pos1 == std::string::npos)
-						return false;
-					auto pos2 = s.find(":", pos1 + 1);
-					if (pos2 == std::string::npos)
-						return false;
-					szBuf1[pos1] = '\0';
-					szBuf1[pos1] = '\0';
-					szBuf1[pos2] = '\0';
+				
 
-					workTime.tm_hour = atoi(szBuf1);
-					workTime.tm_min = atoi(szBuf1 + pos1 + 1);
-					workTime.tm_sec = atoi(szBuf1 + pos2 + 1);
-					return true;
-				};
-
-				if (nret <1 || !getTimeFunc(szBuf1,cameraOBJ[i].paramOBJ[j].stime))
+				if (nret <1 || !cameraOBJ[i].paramOBJ[j].stime.getTimeFunc(szBuf1))
 				{					
 					SPDLOG_ERROR("read cam[{}]  sstime [{}] error, skip", i, j);
 					if(!bWriteIni)continue;;
 				}
 				nret = getConfigString(szKey, fmt::format("etime{}", j).data(), szBuf1);
-				if (nret < 0 || !getTimeFunc(szBuf1, cameraOBJ[i].paramOBJ[j].etime))
+				if (nret < 0 || !cameraOBJ[i].paramOBJ[j].etime.getTimeFunc(szBuf1 ))
 				{
 					SPDLOG_ERROR("read cam[{}] eetime [{}] error, skip", i, j);
 					if (!bWriteIni)continue;;
@@ -136,7 +146,6 @@ public:
 			SPDLOG_ERROR("read [main][ip_X] error, no one was valid! exit");
 			return false;
 		}
-		isvalid = ipValid ;
 		for (int i = 0; i < 4; i++)
 		{
 			SPDLOG_ERROR("IP: {}", cameraOBJ[i].ip);
@@ -158,17 +167,63 @@ public:
 		if (bWriteIni)
 			WritePrivateProfileStringA(szApp, szKey, "", m_ConfigPathA.data());
 		return GetPrivateProfileStringA(szApp, szKey, "", retVal, MAX_PATH, m_ConfigPathA.data());
-	}
+	}struct MyTM
+	{
+		bool isValid = false;
+		int tm_sec = 0;	 // seconds after the minute - [0, 60] including leap second
+		int tm_min = 0;	 // minutes after the hour - [0, 59]
+		int tm_hour = 0; // hours since midnight - [0, 23]
+		
+		bool getTimeFunc (char* szBuf1) {
+			std::string s(szBuf1);
+			auto pos1 = s.find(":");
+			if (pos1 == std::string::npos)
+				return false;
+			auto pos2 = s.find(":", pos1 + 1);
+			if (pos2 == std::string::npos)
+				return false;
+			szBuf1[pos1] = '\0';
+			szBuf1[pos1] = '\0';
+			szBuf1[pos2] = '\0';
 
+			this->tm_hour = atoi(szBuf1);
+			this->tm_min = atoi(szBuf1 + pos1 + 1);
+			this->tm_sec = atoi(szBuf1 + pos2 + 1);
+			this->isValid = true;
+
+
+			return true;
+		};
+	};
+	struct RestartParam {
+		struct MyTM stime;
+		struct tm lastRunTime;
+		std::vector<std::string> m_IPs;
+		bool isNeedRun(struct tm& local) {
+			//       精确到分钟
+			//判断 stime<当前时间
+			//      lastRunTime
+			auto isEqual = [&](MyTM& a) {
+				if (local.tm_hour != a.tm_hour)return false;
+				if (local.tm_min != a.tm_min)return false;
+				if (local.tm_sec != a.tm_sec)return false;
+				return true;
+			};
+			if (lastRunTime.tm_year == local.tm_year
+				&& lastRunTime.tm_mon == local.tm_mon
+				&& lastRunTime.tm_mday == local.tm_mday)
+				return false;
+			if (!isEqual(stime))return false;
+
+			lastRunTime = local;
+			//isFirstRun = false;
+			return true;
+		}
+
+	};
 	struct ParamObj
 	{
-		struct MyTM
-		{
-			bool isValid = false;
-			int tm_sec = 0;	 // seconds after the minute - [0, 60] including leap second
-			int tm_min = 0;	 // minutes after the hour - [0, 59]
-			int tm_hour = 0; // hours since midnight - [0, 23]
-		};
+		
 		struct MyTM stime;
 		struct MyTM etime;
 		struct tm lastRunTime;
@@ -234,6 +289,7 @@ public:
 	};
 	CameraOBJ cameraOBJ[4];
 	bool bWriteIni = false;
+	RestartParam m_RestartParam;
 
 private:
 	std::string m_ConfigPathA = ".\\sdkTool_Config.ini";
