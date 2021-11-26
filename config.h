@@ -74,87 +74,11 @@ public:
 			nret = getConfigString("restart", szKey, szBuf1);
 			if (nret < 7) {
 				SPDLOG_ERROR("restart ->read ip_{} error, skip", i);
-				if (!bWriteIni)continue;
+				continue;
 			}
 			m_RestartParam.m_IPs.emplace_back(szBuf1);
 		}
 
-	}
-	bool load()
-	{
-		char szBuf1[MAX_PATH];
-		char szKey[MAX_PATH];
-		char szApp[MAX_PATH];
-		int nret = 0;
-
-		bool ipValid = false;
-		
-
-		loadResartParam();
-
-		for (int i = 0; i < 4; i++)
-		{
-			sprintf_s(szKey, "%d", i + 1);
-			
-			nret = getConfigString(szKey, "ip", szBuf1);
-			if (nret < 7)//1.1.1.1
-			{
-				SPDLOG_ERROR("read ip_{} error, skip",i);
-				if (!bWriteIni)continue;;
-			}
-			cameraOBJ[i].ip = szBuf1;
-			strcpy(cameraOBJ[i].camera.m_ipaddrstr, szBuf1);
-			ipValid = true;
-
-			for (int j = 0; j < 4; j++)
-			{
-				nret = getConfigString(szKey, fmt::format("stime{}", j).data(), szBuf1);
-				
-
-				if (nret <1 || !cameraOBJ[i].paramOBJ[j].stime.getTimeFunc(szBuf1))
-				{					
-					SPDLOG_ERROR("read cam[{}]  sstime [{}] error, skip", i, j);
-					if(!bWriteIni)continue;;
-				}
-				nret = getConfigString(szKey, fmt::format("etime{}", j).data(), szBuf1);
-				if (nret < 0 || !cameraOBJ[i].paramOBJ[j].etime.getTimeFunc(szBuf1 ))
-				{
-					SPDLOG_ERROR("read cam[{}] eetime [{}] error, skip", i, j);
-					if (!bWriteIni)continue;;
-				}
-				
-				cameraOBJ[i].paramOBJ[j].isValid = true;
-
-					/*
-					stime2 =
-					etime2 =
-					AEMaxTime2 =
-					AVGLight2 =
-					AGain2 =
-					Dlight3 =*/
-				cameraOBJ[i].paramOBJ[j].cameraParam.AEMaxTime = getConfigInt(szKey, fmt::format("AEMaxTime{}",j).data());
-				cameraOBJ[i].paramOBJ[j].cameraParam.AVGLight = getConfigInt(szKey, fmt::format("AVGLight{}",j).data());
-				cameraOBJ[i].paramOBJ[j].cameraParam.AGain = getConfigInt(szKey, fmt::format("AGain{}", j).data());
-				cameraOBJ[i].paramOBJ[j].lightParam.light = getConfigInt(szKey, fmt::format("Dlight{}", j).data());
-				cameraOBJ[i].paramOBJ[j].voice_volume     = getConfigInt(szKey, fmt::format("voice{}", j).data());
-				
-			}
-		}
-
-		if (!ipValid)
-		{
-			SPDLOG_ERROR("read [main][ip_X] error, no one was valid! exit");
-			return false;
-		}
-		for (int i = 0; i < 4; i++)
-		{
-			SPDLOG_ERROR("IP: {}", cameraOBJ[i].ip);
-		}
-		/*for (int i = 0; i < 4; i++)
-		{
-			SPDLOG_ERROR("param aemaxTime:{} AVGlight:{} AGain:{}", paramOBJ[i].param.AEMaxTime, paramOBJ[i].param.AVGLight, paramOBJ[i].param.AGain);
-		}*/
-		return true;
 	}
 	int getConfigInt(const char* szApp, const char* szKey)
 	{
@@ -293,4 +217,81 @@ public:
 
 private:
 	std::string m_ConfigPathA = ".\\sdkTool_Config.ini";
+
+	bool load()
+	{
+		char szBuf1[MAX_PATH];
+		char szKey[MAX_PATH];
+		char szApp[MAX_PATH];
+		int nret = 0;
+
+		bool ipValid = false;
+
+
+		loadResartParam();
+
+		for (int i = 0; i < 4; i++)
+		{
+			sprintf_s(szKey, "%d", i + 1);
+
+			nret = getConfigString(szKey, "ip", szBuf1);
+			if (nret < 7)//1.1.1.1
+			{
+				SPDLOG_ERROR("read ip_{} error, skip", i);
+				if (!bWriteIni)continue;;
+			}
+			cameraOBJ[i].ip = szBuf1;
+			strcpy(cameraOBJ[i].camera.m_ipaddrstr, szBuf1);
+			ipValid = true;
+
+			for (int j = 0; j < 4; j++)
+			{
+				nret = getConfigString(szKey, fmt::format("stime{}", j).data(), szBuf1);
+
+
+				if (nret < 1 || !cameraOBJ[i].paramOBJ[j].stime.getTimeFunc(szBuf1))
+				{
+					SPDLOG_ERROR("read cam[{}]  sstime [{}] error, skip", i, j);
+					if (!bWriteIni)continue;;
+				}
+				nret = getConfigString(szKey, fmt::format("etime{}", j).data(), szBuf1);
+				if (nret < 0 || !cameraOBJ[i].paramOBJ[j].etime.getTimeFunc(szBuf1))
+				{
+					SPDLOG_ERROR("read cam[{}] eetime [{}] error, skip", i, j);
+					if (!bWriteIni)continue;;
+				}
+
+				cameraOBJ[i].paramOBJ[j].isValid = true;
+
+				/*
+				stime2 =
+				etime2 =
+				AEMaxTime2 =
+				AVGLight2 =
+				AGain2 =
+				Dlight3 =*/
+				cameraOBJ[i].paramOBJ[j].cameraParam.AEMaxTime = getConfigInt(szKey, fmt::format("AEMaxTime{}", j).data());
+				cameraOBJ[i].paramOBJ[j].cameraParam.AVGLight = getConfigInt(szKey, fmt::format("AVGLight{}", j).data());
+				cameraOBJ[i].paramOBJ[j].cameraParam.AGain = getConfigInt(szKey, fmt::format("AGain{}", j).data());
+				cameraOBJ[i].paramOBJ[j].lightParam.light = getConfigInt(szKey, fmt::format("Dlight{}", j).data());
+				cameraOBJ[i].paramOBJ[j].voice_volume = getConfigInt(szKey, fmt::format("voice{}", j).data());
+
+			}
+		}
+
+		if (!ipValid)
+		{
+			SPDLOG_ERROR("read [main][ip_X] error, no one was valid! exit");
+			return false;
+		}
+		for (int i = 0; i < 4; i++)
+		{
+			SPDLOG_ERROR("IP: {}", cameraOBJ[i].ip);
+		}
+		/*for (int i = 0; i < 4; i++)
+		{
+			SPDLOG_ERROR("param aemaxTime:{} AVGlight:{} AGain:{}", paramOBJ[i].param.AEMaxTime, paramOBJ[i].param.AVGLight, paramOBJ[i].param.AGain);
+		}*/
+		return true;
+	}
 };

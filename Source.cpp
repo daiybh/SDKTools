@@ -63,6 +63,7 @@ public:
 		SPDLOG_INFO("##############Restart cam   begin##############");
 		for (auto ip : config.m_RestartParam.m_IPs)
 		{
+			SPDLOG_INFO("Restart cam[{}]  prpare", ip);
 			CCamera  ca;
 			strcpy(ca.m_ipaddrstr, ip.c_str());
 			ca.connect();
@@ -111,10 +112,7 @@ public:
 	uint64_t m_loopCnt = 0;
 
 	void start(int argc)
-	{
-
-		config.load();
-		
+	{	
 		
 		auto updateScreen = std::thread([&]()
 										{
