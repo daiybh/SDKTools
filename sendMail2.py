@@ -56,7 +56,7 @@ from git import Repo
 repo=Repo('.')
 headcommit = repo.head.commit
 
-mailText='{0}\n{1}\n{2}'.format(repo.head.reference,repo.head.commit,headcommit.message)
+mailText='{0}   {1}\n{2}\n{3}'.format(repo.remotes.origin.url,repo.head.reference,repo.head.commit,headcommit.message)
 
 print(mailText)
 
