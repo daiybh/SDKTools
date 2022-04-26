@@ -58,55 +58,7 @@ inline void initLogger(const char *folderPath)
 class Worker
 {
 public:
-	void doRestartDev(struct tm& local) {
-		if (!config.m_RestartParam.isNeedRun(local))return;
-		SPDLOG_INFO("##############Restart cam   begin##############");
-		for (auto ip : config.m_RestartParam.m_IPs)
-		{
-			SPDLOG_INFO("Restart cam[{}]  prpare", ip);
-			CCamera  ca;
-			strcpy(ca.m_ipaddrstr, ip.c_str());
-			ca.connect();
-			int ret = ca.set_EYEST_NET_RESTART();
-			SPDLOG_INFO("Restart cam[{}]  result:{},{}", ip, (ret == 0) ? "Sccuess" : "faild", ret);
-		}
-
-		SPDLOG_INFO("##############Restart cam   END##############");
-	}
-	void doWork()
-	{
-		struct tm local;
-		time_t t;
-		t = time(NULL);
-		localtime_s(&local, &t);
-
-		doRestartDev(local);
-
-		for (int j = 0; j < 4; j++)
-		{
-			if (!config.cameraOBJ[j].isValid())continue;
-			for (int i = 0; i < 4; i++)
-			{
-				if (!config.cameraOBJ[j].paramOBJ[i].isValid)
-					continue;
-				//SPDLOG_INFO("time[{}]---> camera[{},{}]  xxxxxx", i, j, config.cameraOBJ[j].ip);
-
-				if (config.cameraOBJ[j].paramOBJ[i].isNeedRun(local))
-				{
-					SPDLOG_INFO("time[{}]---> camera[{},{}]  to setParam>>>begin", i, j, config.cameraOBJ[j].ip);
-					config.cameraOBJ[j].camera.connect();
-					int ret = config.cameraOBJ[j].camera.set_3A_PARAM_V1(config.cameraOBJ[j].paramOBJ[i].cameraParam); /**/
-					SPDLOG_INFO("time[{}]---> camera[{},{}]  to setcameraParam>>> {},{}", i, j, config.cameraOBJ[i].ip, (ret == 0) ? "Sccuess" : "faild", ret);
-
-					ret = config.cameraOBJ[j].camera.set_EYEST_NET_SET_LIGHT_PARAM(config.cameraOBJ[j].paramOBJ[i].lightParam); /**/
-					SPDLOG_INFO("time[{}]---> camera[{},{}]  to setLightParam>>> {},{}", i, j, config.cameraOBJ[i].ip, (ret == 0) ? "Sccuess" : "faild", ret);
-
-					bool bret = config.cameraOBJ[j].camera.chageVOLUME(config.cameraOBJ[j].paramOBJ[i].voice_volume);
-					SPDLOG_INFO("time[{}]---> camera[{},{}]  to chageVOLUME>>> {},{}", i, j, config.cameraOBJ[i].ip, (bret) ? "Sccuess" : "faild", ret);					
-				}
-			}
-		}
-	}
+	
 	Config config;
 	ConsoleUtil m_ConsoleUtil;
 	uint64_t m_loopCnt = 0;
@@ -114,45 +66,7 @@ public:
 	void start(int argc)
 	{	
 		
-		auto updateScreen = std::thread([&]()
-										{
-											while (1)
-											{
-												int baseLine = 5;
-												struct tm local;
-												time_t t;
-												t = time(NULL);
-												localtime_s(&local, &t);
-
-												m_ConsoleUtil.gotoXY(0, baseLine++);
-												printf("loop:%I64d,curTick:%d cur:%02d:%02d:%02d", m_loopCnt, GetTickCount(), local.tm_hour, local.tm_min, local.tm_sec);
-												for (int j = 0; j < 4; j++)
-												{
-													m_ConsoleUtil.gotoXY(0, baseLine++);
-													printf("ip:%s ", config.cameraOBJ[j].ip.data());
-												
-												baseLine++;
-												for (int i = 0; i < 4; i++)
-												{
-													m_ConsoleUtil.gotoXY(0, baseLine++);
-													/*	fmt::print("param aemaxTime:{} AVGlight:{} AGain:{}   runtime: {:02d}:{:02d}:{:02d}",
-															config.cameraOBJ[j].paramOBJ[i].param.AEMaxTime,
-															config.cameraOBJ[j].paramOBJ[i].param.AVGLight,
-															config.cameraOBJ[j].paramOBJ[i].param.AGain,
-															config.cameraOBJ[j].paramOBJ[i].workTime.tm_hour,
-															config.cameraOBJ[j].paramOBJ[i].workTime.tm_min,
-															config.cameraOBJ[j].paramOBJ[i].workTime.tm_sec);*/
-												}
-												}
-												Sleep(1000);
-												if (m_loopCnt % 1000 == 0)
-													m_ConsoleUtil.clearscreen();
-												doWork();
-												m_loopCnt++;
-											}
-										});
-
-		updateScreen.join();
+		
 	}
 };
 
