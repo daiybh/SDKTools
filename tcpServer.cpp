@@ -12,8 +12,9 @@
 
 int TCPServer::start(simplyLogger _logger, int _port, RisePoleFunc _func)
 {
-	
-	_logger->info("tcpServer start({}) .....", _port);
+	m_logger = new SimplyLive::Logger();
+	m_logger->setPath(L".\\logs\\tcpserveer.log");
+	m_logger->info("tcpServer start({}) .....", _port);
 	m_RisePoleFunc = std::move(_func);
 	ADDRINFOA hints;
 	ZeroMemory(&hints, sizeof(hints));
@@ -34,13 +35,13 @@ int TCPServer::start(simplyLogger _logger, int _port, RisePoleFunc _func)
 	if (setsockopt(m_listenSocket, SOL_SOCKET, SO_REUSEADDR, &enable, 1) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
-		_logger->error("setsockopt failed.lasterror:(%d)", err);
+		m_logger->error("setsockopt failed.lasterror:(%d)", err);
 		return err;
 	}
 	if (::bind(m_listenSocket, socketAdd->ai_addr, (int)socketAdd->ai_addrlen) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
-		_logger->error("bind failed.lasterror:(%d)", err);
+		m_logger->error("bind failed.lasterror:(%d)", err);
 		return err;
 	}
 	//---------------
@@ -49,7 +50,7 @@ int TCPServer::start(simplyLogger _logger, int _port, RisePoleFunc _func)
 	if (listen(m_listenSocket, SOMAXCONN) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
-		_logger->error("listen failed.lasterror:(%d)", err);
+		m_logger->error("listen failed.lasterror:(%d)", err);
 		return err;
 	}
 	for (int i = 0; i < 10; i++)
@@ -57,7 +58,7 @@ int TCPServer::start(simplyLogger _logger, int _port, RisePoleFunc _func)
 		m_client[i] = -1;
 	}
 	std::thread m_heartThread = std::thread(&TCPServer::heartThread, this);
-	_logger->info("tcpServer start({}) sucessed", _port);
+	m_logger->info("tcpServer start({}) sucessed", _port);
 
 	startThread(EasyThread::Priority::normal);
 	m_heartThread.join();
@@ -91,25 +92,53 @@ void TCPServer::do_communication(int cfd)
  BS20220001,192.168.0.243,20220407191532
  2A@
 		*/
-		if(!handleCmd.parseCmd(buf, nret))
-			continue;
+		int  bFailed = 0;
+		do {
 
-		RisePole* rp = (RisePole*)buf;
-		if(!rp->isValid())continue;
-		std::string body = rp->body;
-		size_t pos = body.find(',');
-		if (pos == std::string::npos)continue;
-		size_t pos2 = body.find(',', pos + 1);
-		if (pos2 == std::string::npos)continue;
-		std::string ip = body.substr(pos + 1, pos2 - pos - 1);
-		if (m_RisePoleFunc==nullptr)continue;
 
-		bool bReet =m_RisePoleFunc(ip);
+			if (!handleCmd.parseCmd(buf, nret))
+			{
+				bFailed = 1;
+				break;
+			}
 
-		auto response = handleCmd.makeRaisePoleResponse(ip);
-		int nLen = send(cfd, response.data(), response.length(), 0);
-		if (nLen != response.length())
-			break;
+			RisePole* rp = (RisePole*)buf;
+			if (!rp->isValid()) {
+				bFailed = 2;
+				break;
+			};;
+			std::string body = rp->body;
+			size_t pos = body.find(',');
+			if (pos == std::string::npos) {
+				bFailed = 3;
+				break;
+			};;
+			size_t pos2 = body.find(',', pos + 1);
+			if (pos2 == std::string::npos) {
+				bFailed = 4;
+				break;
+			};
+			std::string ip = body.substr(pos + 1, pos2 - pos - 1);
+			if (m_RisePoleFunc == nullptr) {
+				bFailed = 5;
+				break;
+			};;
+
+			bool bReet = m_RisePoleFunc(ip);
+
+			auto response = handleCmd.makeRaisePoleResponse(ip);
+			int nLen = send(cfd, response.data(), response.length(), 0);
+			if (nLen != response.length())
+			{
+				bFailed = 6;
+				break;
+			};
+
+		} while (0);
+		if (bFailed > 0)
+		{
+			m_logger->error("errmsg err:{}  \n msg:{}", bFailed, std::string(buf));
+		}
 	}
 
 	closesocket(cfd);
@@ -155,11 +184,13 @@ void TCPServer::callBack()
 			inet_ntop(sin.sin_family, &sin.sin_addr, clientIP, sizeof(clientIP));
 
 			std::lock_guard<std::shared_mutex> lock(m_lock);
+			m_logger->info("new client {}:{}", clientIP, sin.sin_port);
 			for (int i = 0; i < 10; i++)
 			{
 				if (m_client[i] == -1)
 				{
 					m_client[i] = clientSocket; 
+					
 					std::thread t = std::thread(&TCPServer::do_communication, this, (int)clientSocket);
 					t.detach();
 					break;

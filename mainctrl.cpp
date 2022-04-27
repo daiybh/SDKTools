@@ -29,9 +29,9 @@ void MainCtrl::init()
 
 	m_logger->info("init");
 	g_pthis = this;
-	for (int i = 0; i < m_config.m_Cameras.size(); i++)
+	for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
 	{
-		auto item = m_config.m_Cameras[i];
+		auto item = Config::instance().m_Cameras[i];
 
 		item->camera->_ADD_LOG = &StaticClass::ADD_LOG_CALLBACK;
 		item->camera->_NET_SMARTRECVCALLBACK_EX = &StaticClass::NET_SMARTRECVCALLBACK_EX;
@@ -40,15 +40,36 @@ void MainCtrl::init()
 		printf("\n%p", item);
 	}
 	Load();
-	int nret = m_tcpServer.start(m_logger,m_config.localPort, std::bind(&MainCtrl::RaisePole,this,  std::placeholders::_1));
-	m_logger->info("tcpServer start({}) {}", m_config.localPort, nret == 0 ? "sucessd" : "failed");
+	m_heartThread = std::thread([&]() {
+
+		simplyLogger m_logger = std::make_shared<SimplyLive::Logger>();
+		m_logger->setPath(L"\\logs\\main_heartThread.log");
+		int i = 0;
+		while (1) {
+
+
+			TcpClient client;
+			bool bret = client.ConnectToHost(Config::instance().serverIP.data(), Config::instance().serverPort);
+			if (!bret)
+			{
+				m_logger->error("ConnectToHost failed. {} {}", Config::instance().serverIP, Config::instance().serverPort);
+			}
+			auto acar = fmt::format("´¨A{:05d}", i++);
+			bret = client.sendCarComing(acar.data(), "127.0.0.1");
+			Sleep(10 * 1000);
+		}
+		});
+	
+
+	int nret = m_tcpServer.start(m_logger,Config::instance().localPort, std::bind(&MainCtrl::RaisePole,this,  std::placeholders::_1));
+	m_logger->info("tcpServer start({}) {}", Config::instance().localPort, nret == 0 ? "sucessd" : "failed");
 }
 
 void MainCtrl::Load()
 {
-	for (int i = 0; i < m_config.m_Cameras.size(); i++)
+	for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
 	{
-		auto item = m_config.m_Cameras[i];
+		auto item = Config::instance().m_Cameras[i];
 		if (item->camera->m_caminstance == 0)
 			item->camera->connect();
 	}
@@ -71,9 +92,9 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 	//if (g_pthis)
 	//		g_pthis->NET_SMARTRECVCALLBACK_EX(SmartResultEx, pJpeg, nLength, (CCamera*)UserParam);		
 	CCamera* pCamera = (CCamera*)UserParam;
-	if (pCamera->m_curID >= m_config.m_Cameras.size())
+	if (pCamera->m_curID >= Config::instance().m_Cameras.size())
 		return;
-	CameraOBJ* cameraOBJ = m_config.m_Cameras[pCamera->m_curID];
+	CameraOBJ* cameraOBJ = Config::instance().m_Cameras[pCamera->m_curID];
 
 	m_logger->info("µØµã:%s IP:%s ³µÅÆ:%s realbility:%.2f carstatus:%d curID:%d bIn:%d\n",
 		SmartResultEx->DevName, SmartResultEx->camerIp,
@@ -82,10 +103,10 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 	TcpClient client;
 	for (int i = 0; i < 3; i++)
 	{
-		bool bret = client.ConnectToHost(m_config.serverIP.data(), m_config.serverPort);
+		bool bret = client.ConnectToHost(Config::instance().serverIP.data(), Config::instance().serverPort);
 		if (!bret)
 		{
-			m_logger->error("ConnectToHost failed.try again {} {}", m_config.serverIP, m_config.serverPort);
+			m_logger->error("ConnectToHost failed.try again {} {}", Config::instance().serverIP, Config::instance().serverPort);
 			continue;
 		}
 		bret = client.sendCarComing(SmartResultEx->platenum, SmartResultEx->camerIp);
@@ -97,7 +118,7 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 bool MainCtrl::RaisePole(std::string& ip)
 {
 	CameraOBJ* obj = nullptr;
-	if (!m_config.m_cameraMap.find(ip, obj))
+	if (!Config::instance().m_cameraMap.find(ip, obj))
 	{
 
 		m_logger->error("raisePole  {} failed .don't found correct IP", ip);

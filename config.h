@@ -31,6 +31,10 @@ struct CameraOBJ
 class Config
 {
 public:
+	static Config& instance() {
+		static Config c;
+		return c;
+	}
 	Config()
 	{
 		char szBuf1[MAX_PATH];
@@ -52,9 +56,12 @@ public:
 
 		getConfigString("server", "IP",szBuf1);
 		serverIP = szBuf1;
+
+		getConfigString("server", "serverSN", szBuf1,"BS20220001");
+		serverSN = szBuf1;
 		loadCameras();
 	}
-	
+	std::string serverSN;
 	SyncVector<CameraOBJ*> m_Cameras;
 	SyncMap<std::string,CameraOBJ*> m_cameraMap;
 	std::string serverIP;
@@ -71,11 +78,11 @@ private:
 			WritePrivateProfileStringA(szApp, szKey, "", m_ConfigPathA.data());
 		return GetPrivateProfileIntA(szApp, szKey, 0, m_ConfigPathA.data());
 	}
-	int getConfigString(const char* szApp, const char* szKey, char* retVal)
+	int getConfigString(const char* szApp, const char* szKey, char* retVal,char*defaultValue="")
 	{
 		if (bWriteIni)
-			WritePrivateProfileStringA(szApp, szKey, "", m_ConfigPathA.data());
-		return GetPrivateProfileStringA(szApp, szKey, "", retVal, MAX_PATH, m_ConfigPathA.data());
+			WritePrivateProfileStringA(szApp, szKey, defaultValue, m_ConfigPathA.data());
+		return GetPrivateProfileStringA(szApp, szKey, defaultValue, retVal, MAX_PATH, m_ConfigPathA.data());
 	}
 	std::string m_ConfigPathA = ".\\sdkTool_Config.ini";
 

@@ -2,11 +2,14 @@
 #include "fmt/format.h"
 #include <fmt/chrono.h>
 static char hex_table[] = { '0','1','2','3','4' ,'5' ,'6' ,'7' ,'8' ,'9','A','B' };
+#include "config.h"
 class HandleCmd
 {
 public:
 	HandleCmd() {
+		m_sn = Config::instance().serverSN;
 		makeCarcomingCmd("ÏæAC8888","192.168.0.123");
+
 	}
 	char bbcCheck(char* buffer, int nLen)
 	{
@@ -67,7 +70,7 @@ private:
 		std::time_t t = std::time(nullptr);
 
 		// Prints "The date is 2020-11-07." (with the current date):
-		return fmt::format("{:%Y%m%d%H%M%S}.", fmt::localtime(t));
+		return fmt::format("{:%Y%m%d%H%M%S}", fmt::localtime(t));
 
 	}
 	std::string buildAllCmd(std::string header, std::string& body) {

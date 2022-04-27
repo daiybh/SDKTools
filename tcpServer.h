@@ -2,7 +2,7 @@
 #include "easyThread.h"
 #include <shared_mutex>
 #include <functional>
-
+#include <logLib.h>
 using RisePoleFunc =  std::function<bool(std::string& ip)>;
 
 class TCPServer:public EasyThread {
@@ -23,4 +23,6 @@ protected:
 	void do_communication(int cfd);
 
 	void callBack() override;	
+
+	SimplyLive::Logger * m_logger;
 };

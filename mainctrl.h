@@ -23,8 +23,7 @@ public:
 	void __stdcall 		NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* SmartResultEx, char* pJpeg, int* nLength, char* userdata, void* UserParam);
 	bool RaisePole(std::string& ip);
 private:
-	Config m_config;
 	TCPServer m_tcpServer;
-
+	std::thread m_heartThread;
 	simplyLogger m_logger;
 };
