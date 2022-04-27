@@ -117,6 +117,9 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 		return FALSE;
 	}
 }
+#include "tcpServer.h"
+#include "tcpClient.h"
+#include "handleCmd.h"
 int main(int argc, char *argv[])
 {
 	HANDLE mutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, "store.hyman.sdk_TOOLs.Mutex");

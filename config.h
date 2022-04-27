@@ -1,42 +1,11 @@
 
 #include "..\inc\Camera.h"
-
+#include "syncVector.h"
+#include "SyncMap.h"
 static void CALLBACK addLog(const char* log, void* UserParam)
 {
 	SPDLOG_ERROR("addLog....{}", log);
 }
-/*
-[1]
-IP_0=
-
-stime1=
-etime1=
-AEMaxTime1=
-AVGLight1=
-AGain1=
-Dlight1=
-
-stime2=
-etime2=
-AEMaxTime2=
-AVGLight2=
-AGain2=
-Dlight3=
-
-stime3=
-etime3=
-AEMaxTime3=
-AVGLight3=
-AGain3=
-Dlight3=
-
-stime4=
-etime4=
-AEMaxTime4=
-AVGLight4=
-AGain4=
-Dligh4t=
-*/
 class Config
 {
 public:
@@ -54,21 +23,14 @@ public:
 		{
 			bWriteIni = true;
 		}
+		localPort = getConfigInt("main", "localListenPort");
+		serverPort = getConfigInt("server", "ListenPort");
+
+		getConfigString("server", "IP",szBuf1);
+		serverIP = szBuf1;
 		loadCameras();
 	}
 	
-	int getConfigInt(const char* szApp, const char* szKey)
-	{
-		if (bWriteIni)
-			WritePrivateProfileStringA(szApp, szKey, "", m_ConfigPathA.data());
-		return GetPrivateProfileIntA(szApp, szKey, 0, m_ConfigPathA.data());
-	}
-	int getConfigString(const char* szApp, const char* szKey, char* retVal)
-	{
-		if (bWriteIni)
-			WritePrivateProfileStringA(szApp, szKey, "", m_ConfigPathA.data());
-		return GetPrivateProfileStringA(szApp, szKey, "", retVal, MAX_PATH, m_ConfigPathA.data());
-	}
 
 	struct CameraOBJ
 	{
@@ -81,17 +43,35 @@ public:
 			return ip.length()>6 && (ip!="0.0.0.0");
 		}
 		CCamera *camera;
+		CameraOBJ* masterObj;
 		CameraOBJ()
 		{
 			camera = new CCamera();
 			camera->_ADD_LOG = addLog;
 		}
 	};
-	std::vector<CameraOBJ> m_Cameras;
-	
-	bool bWriteIni = false;
+	SyncVector<CameraOBJ*> m_Cameras;
+	SyncMap<std::string,CameraOBJ*> m_cameraMap;
+	std::string serverIP;
+	int         serverPort;
+
+	int localPort;
 
 private:
+	bool bWriteIni = false;
+
+	int getConfigInt(const char* szApp, const char* szKey)
+	{
+		if (bWriteIni)
+			WritePrivateProfileStringA(szApp, szKey, "", m_ConfigPathA.data());
+		return GetPrivateProfileIntA(szApp, szKey, 0, m_ConfigPathA.data());
+	}
+	int getConfigString(const char* szApp, const char* szKey, char* retVal)
+	{
+		if (bWriteIni)
+			WritePrivateProfileStringA(szApp, szKey, "", m_ConfigPathA.data());
+		return GetPrivateProfileStringA(szApp, szKey, "", retVal, MAX_PATH, m_ConfigPathA.data());
+	}
 	std::string m_ConfigPathA = ".\\sdkTool_Config.ini";
 
 	bool loadCameras()
@@ -145,16 +125,20 @@ private:
 			std::vector<std::string> ipArr = pLoadIP(szBuf1);
 			if(ipArr.empty())continue;
 			int j = 0;
+			CameraOBJ* masterObj = nullptr;
 			for (auto item : ipArr)
 			{
-				CameraOBJ obj;
-				obj.isIn = true;
-				obj.isMaster = j==0;
+				CameraOBJ *obj= new CameraOBJ();
+				obj->isIn = true;
+				if (j == 0)
+					masterObj = obj;
+				obj->isMaster = j==0;
 				
-				obj.ip = item;
-				obj.camera->m_curID = m_Cameras.size();
-				strcpy(obj.camera->m_ipaddrstr, item.data());
+				obj->ip = item;
+				obj->camera->m_curID = m_Cameras.size();
+				strcpy(obj->camera->m_ipaddrstr, item.data());
 				m_Cameras.emplace_back(obj);
+				m_cameraMap.emplace(item, obj);
 				j++;
 			}
 			ipValid = true;
@@ -173,16 +157,22 @@ private:
 			std::vector<std::string> ipArr = pLoadIP(szBuf1);
 			if (ipArr.empty())continue;
 			int j = 0;
+			CameraOBJ* masterObj = nullptr;
+
 			for (auto item : ipArr)
 			{
-				CameraOBJ obj;
-				obj.isIn = false;
-				obj.isMaster = j == 0;
-				
-				obj.ip = item;
-				obj.camera->m_curID = m_Cameras.size();
-				strcpy(obj.camera->m_ipaddrstr, item.data());
+				CameraOBJ* obj = new CameraOBJ();
+				obj->isIn = false;
+				if (j == 0)
+					masterObj = obj;
+				obj->isMaster = j == 0;
+
+				obj->ip = item;
+				obj->camera->m_curID = m_Cameras.size();
+				strcpy(obj->camera->m_ipaddrstr, item.data());
 				m_Cameras.emplace_back(obj);
+				m_cameraMap.emplace(item, obj);
+
 				j++;
 			}
 			ipValid = true;
@@ -196,9 +186,9 @@ private:
 		}
 		for (int i=0;i< m_Cameras.size();i++)
 		{
-			CameraOBJ item = m_Cameras[i];
+			CameraOBJ *item = m_Cameras[i];
 
-			SPDLOG_ERROR("in[{}] IP: {}", item.isIn,item.ip);
+			SPDLOG_ERROR("in[{}] IP: {}", item->isIn,item->ip);
 		}
 		return true;
 	}

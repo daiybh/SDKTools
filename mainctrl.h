@@ -15,6 +15,12 @@ public:
 
 			printf("\n%p", item);
 		}
+		Load();
+		int nret =m_tcpServer.start(m_config.localPort, [&](std::string& ip) {
+			
+			m_config.m_Cameras
+			});
+		SPDLOG_LOGGER_INFO("tcpServer start({}) {}", m_config.localPort, nret == 0 ? "sucessd" : "failed");
 	}
 	void Load() {
 		for (auto& item : m_config.m_Cameras)
@@ -52,10 +58,23 @@ public:
 			SmartResultEx->DevName, SmartResultEx->camerIp,
 			SmartResultEx->platenum, SmartResultEx->realbility, SmartResultEx->carstatus,
 			pCamera->m_curID, cameraOBJ.isIn);
-
+		TcpClient client;
+		for (int i = 0; i < 3; i++)
+		{
+			bool bret = client.ConnectToHost(m_config.serverIP, m_config.serverPort);
+			if (!bret)
+			{
+				SPDLOG_LOGGER_INFO("ConnectToHost failed.try again {} {}", m_config.serverIP, m_config.serverPort);
+				continue;
+			}
+			bret = client.sendCarComing(SmartResultEx->platenum, SmartResultEx->camerIp);
+			if (bret)break;
+			SPDLOG_LOGGER_INFO("sendCarComing failed.try again {} {}", SmartResultEx->platenum, SmartResultEx->camerIp);
+		}
 	}
 
 private:
 	Config m_config;
+	TCPServer m_tcpServer;
 
 };
