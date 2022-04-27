@@ -4,10 +4,14 @@
 #include "config.h"
 #include "tcpServer.h"
 #include "tcpClient.h"
-
+#include "logLib.h"
 class MainCtrl
 {
 public:
+	MainCtrl() {
+		m_logger = std::make_shared<SimplyLive::Logger>();
+		m_logger->setPath(L".\\logs\\mainctrl.log");
+	}
 	void init();
 	void Load();
 
@@ -22,4 +26,5 @@ private:
 	Config m_config;
 	TCPServer m_tcpServer;
 
+	simplyLogger m_logger;
 };

@@ -4,10 +4,10 @@
 #include "SyncMap.h"
 #include <filesystem>
 #include <Shlwapi.h>
-#include "myLogger.h"
+#include "logLib.h"
 static void CALLBACK addLog(const char* log, void* UserParam)
 {
-	SPDLOG_ERROR("addLog....{}", log);
+	//SPDLOG_ERROR("addLog....{}", log);
 }
 
 struct CameraOBJ
@@ -39,6 +39,8 @@ public:
 		PathRemoveFileSpecA(szBuf1);
 		strcat(szBuf1, "\\sdkTool_Config.ini");
 		m_ConfigPathA = szBuf1;
+		m_logger = std::make_shared<SimplyLive::Logger>();
+		m_logger->setPath(L".\\logs\\config.log");
 
 		std::error_code error;
 		if (!std::filesystem::exists(m_ConfigPathA, error)) //already have a file with the same name?
@@ -122,7 +124,7 @@ private:
 			nret = getConfigString("in", szKey, szBuf1);
 			if (nret < 7)//1.1.1.1
 			{
-				SPDLOG_ERROR("read ip_{} error, skip", i);
+				m_logger->info("read ip_{} error, skip", i);
 				if (!bWriteIni)continue;;
 			}
 			std::vector<std::string> ipArr = pLoadIP(szBuf1);
@@ -154,7 +156,7 @@ private:
 			nret = getConfigString("out", szKey, szBuf1);
 			if (nret < 7)//1.1.1.1
 			{
-				SPDLOG_ERROR("read ip_{} error, skip", i);
+				m_logger->info("read ip_{} error, skip", i);
 				if (!bWriteIni)continue;;
 			}
 			std::vector<std::string> ipArr = pLoadIP(szBuf1);
@@ -184,15 +186,17 @@ private:
 
 		if (!ipValid)
 		{
-			SPDLOG_ERROR("read [main][ip_X] error, no one was valid! exit");
+			m_logger->info("read [main][ip_X] error, no one was valid! exit");
 			return false;
 		}
 		for (int i=0;i< m_Cameras.size();i++)
 		{
 			CameraOBJ *item = m_Cameras[i];
 
-			SPDLOG_ERROR("in[{}] IP: {}", item->isIn,item->ip);
+			m_logger->info("in[{}] IP: {}", item->isIn,item->ip);
 		}
 		return true;
 	}
+
+	simplyLogger m_logger;
 };

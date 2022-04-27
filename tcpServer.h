@@ -7,7 +7,7 @@ using RisePoleFunc =  std::function<bool(std::string& ip)>;
 
 class TCPServer:public EasyThread {
 public:
-	int start(int port, RisePoleFunc _func);
+	int start(simplyLogger _logger,int port, RisePoleFunc _func);
 private:
 
 	uint64_t           m_listenSocket;;

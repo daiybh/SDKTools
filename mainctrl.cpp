@@ -1,5 +1,5 @@
 #include "mainctrl.h"
-#include "myLogger.h"
+#include "logLib.h"
 MainCtrl* g_pthis = nullptr;
 namespace StaticClass {
 
@@ -26,6 +26,8 @@ namespace StaticClass {
 };
 void MainCtrl::init()
 {
+
+	m_logger->info("init");
 	g_pthis = this;
 	for (int i = 0; i < m_config.m_Cameras.size(); i++)
 	{
@@ -38,8 +40,8 @@ void MainCtrl::init()
 		printf("\n%p", item);
 	}
 	Load();
-	int nret = m_tcpServer.start(m_config.localPort, std::bind(&MainCtrl::RaisePole,this,  std::placeholders::_1));
-	SPDLOG_INFO("tcpServer start({}) {}", m_config.localPort, nret == 0 ? "sucessd" : "failed");
+	int nret = m_tcpServer.start(m_logger,m_config.localPort, std::bind(&MainCtrl::RaisePole,this,  std::placeholders::_1));
+	m_logger->info("tcpServer start({}) {}", m_config.localPort, nret == 0 ? "sucessd" : "failed");
 }
 
 void MainCtrl::Load()
@@ -73,7 +75,7 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 		return;
 	CameraOBJ* cameraOBJ = m_config.m_Cameras[pCamera->m_curID];
 
-	SPDLOG_INFO("地点:%s IP:%s 车牌:%s realbility:%.2f carstatus:%d curID:%d bIn:%d\n",
+	m_logger->info("地点:%s IP:%s 车牌:%s realbility:%.2f carstatus:%d curID:%d bIn:%d\n",
 		SmartResultEx->DevName, SmartResultEx->camerIp,
 		SmartResultEx->platenum, SmartResultEx->realbility, SmartResultEx->carstatus,
 		pCamera->m_curID, cameraOBJ->isIn);
@@ -83,12 +85,12 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 		bool bret = client.ConnectToHost(m_config.serverIP.data(), m_config.serverPort);
 		if (!bret)
 		{
-			SPDLOG_INFO("ConnectToHost failed.try again {} {}", m_config.serverIP, m_config.serverPort);
+			m_logger->error("ConnectToHost failed.try again {} {}", m_config.serverIP, m_config.serverPort);
 			continue;
 		}
 		bret = client.sendCarComing(SmartResultEx->platenum, SmartResultEx->camerIp);
 		if (bret)break;
-		SPDLOG_INFO("sendCarComing failed.try again {} {}", SmartResultEx->platenum, SmartResultEx->camerIp);
+		m_logger->error("sendCarComing failed.try again {} {}", SmartResultEx->platenum, SmartResultEx->camerIp);
 	}
 }
 
@@ -98,11 +100,11 @@ bool MainCtrl::RaisePole(std::string& ip)
 	if (!m_config.m_cameraMap.find(ip, obj))
 	{
 
-		SPDLOG_ERROR("raisePole  {} failed .don't found correct IP", ip);
+		m_logger->error("raisePole  {} failed .don't found correct IP", ip);
 		return false;
 	}
 
 	bool b = obj->masterObj->camera->openDoor();
-	SPDLOG_INFO("raisePole  {}  openDoor={}", ip, b);
+	m_logger->info("raisePole  {}  openDoor={}", ip, b);
 	return true;
 }
