@@ -5,15 +5,15 @@
 #endif
 #include <WS2tcpip.h>
 #include "tcpServer.h"
+#include "myLogger.h"
 //#include <windows.h>
 #pragma comment(lib, "Ws2_32.lib")
 #define addLog(format,...) {}
 
+
 int TCPServer::start(int _port, RisePoleFunc _func)
 {
-	//---------------
-// create socket
-	m_RisePoleFunc = _func;
+	m_RisePoleFunc = std::move(_func);
 	ADDRINFOA hints;
 	ZeroMemory(&hints, sizeof(hints));
 	hints.ai_family = AF_INET;
@@ -33,13 +33,13 @@ int TCPServer::start(int _port, RisePoleFunc _func)
 	if (setsockopt(m_listenSocket, SOL_SOCKET, SO_REUSEADDR, &enable, 1) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
-		addLog("setsockopt failed.lasterror:(%d)", err);
+		SPDLOG_INFO("setsockopt failed.lasterror:(%d)", err);
 		return err;
 	}
 	if (::bind(m_listenSocket, socketAdd->ai_addr, (int)socketAdd->ai_addrlen) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
-		addLog("bind failed.lasterror:(%d)", err);
+		SPDLOG_INFO("bind failed.lasterror:(%d)", err);
 		return err;
 	}
 	//---------------
@@ -48,16 +48,18 @@ int TCPServer::start(int _port, RisePoleFunc _func)
 	if (listen(m_listenSocket, SOMAXCONN) == SOCKET_ERROR)
 	{
 		int err = WSAGetLastError();
-		addLog("listen failed.lasterror:(%d)", err);
+		SPDLOG_INFO("listen failed.lasterror:(%d)", err);
 		return err;
 	}
 	for (int i = 0; i < 10; i++)
 	{
 		m_client[i] = -1;
 	}
-	startThread(EasyThread::Priority::normal);
+	std::thread m_heartThread = std::thread(&TCPServer::heartThread, this);
+	SPDLOG_INFO("tcpServer start({}) sucessed", _port);
 
-	m_heartThread = std::thread(&TCPServer::heartThread,this);
+	startThread(EasyThread::Priority::normal);
+	m_heartThread.join();
 	return 0;
 }
 #include "tcpBase.h"
@@ -103,6 +105,10 @@ void TCPServer::do_communication(int cfd)
 
 		bool bReet =m_RisePoleFunc(ip);
 
+		auto response = handleCmd.makeRaisePoleResponse(ip);
+		int nLen = send(cfd, response.data(), response.length(), 0);
+		if (nLen != response.length())
+			break;
 	}
 
 	closesocket(cfd);

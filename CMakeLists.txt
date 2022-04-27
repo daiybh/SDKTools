@@ -10,7 +10,7 @@ project(SDKTOOLS
 find_package(spdlog CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
 
-add_executable(SDKTOOLS 	Source.cpp "config.h" "mainctrl.h" "tcpServer.h" "tcpServer.cpp" "tcpClient.h" "tcpClient.cpp" "handleCmd.h" "tcpBase.h" "tcpBase.cpp")
+add_executable(SDKTOOLS 	Source.cpp "config.h" "mainctrl.h" "tcpServer.h" "tcpServer.cpp" "tcpClient.h" "tcpClient.cpp" "handleCmd.h" "tcpBase.h" "tcpBase.cpp" "mainctrl.cpp")
 target_include_directories(SDKTOOLS PRIVATE wu_camera-sdk/inc)
 target_link_directories(SDKTOOLS PRIVATE wu_camera-sdk/lib)
 target_link_libraries(SDKTOOLS PRIVATE spdlog::spdlog_header_only)

@@ -4,10 +4,10 @@
 #include <functional>
 
 using RisePoleFunc =  std::function<bool(std::string& ip)>;
+
 class TCPServer:public EasyThread {
 public:
 	int start(int port, RisePoleFunc _func);
-	void do_communication(int cfd);
 private:
 
 	uint64_t           m_listenSocket;;
@@ -15,9 +15,12 @@ private:
 	uint64_t m_client[10];
 	std::shared_mutex		m_lock;
 
+	RisePoleFunc m_RisePoleFunc;
 	std::thread m_heartThread;
+
 	void heartThread();
-	RisePoleFunc m_RisePoleFunc = nullptr;
 protected:
+	void do_communication(int cfd);
+
 	void callBack() override;	
 };

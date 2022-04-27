@@ -28,7 +28,7 @@ public:
 		return buildAllCmd(cmd, body);
 	}
 	
-	std::string makeRaisePoleResonse(std::string &ip) {
+	std::string makeRaisePoleResponse(std::string &ip) {
 	/*客户端响应的数据:
 		% RLOD0027RISEPOLE00
 			BS20220001, 192.168.0.243, 20220407191532

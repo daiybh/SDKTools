@@ -1,11 +1,33 @@
-
+#pragma  once
 #include "..\inc\Camera.h"
 #include "syncVector.h"
 #include "SyncMap.h"
+#include <filesystem>
+#include <Shlwapi.h>
+#include "myLogger.h"
 static void CALLBACK addLog(const char* log, void* UserParam)
 {
 	SPDLOG_ERROR("addLog....{}", log);
 }
+
+struct CameraOBJ
+{
+	std::string ip;
+	bool isIn = false;
+	int id = 0;
+	bool isMaster = false;
+	bool isValid()
+	{
+		return ip.length() > 6 && (ip != "0.0.0.0");
+	}
+	CCamera* camera;
+	CameraOBJ* masterObj;
+	CameraOBJ()
+	{
+		camera = new CCamera();
+		camera->_ADD_LOG = addLog;
+	}
+};
 class Config
 {
 public:
@@ -31,25 +53,6 @@ public:
 		loadCameras();
 	}
 	
-
-	struct CameraOBJ
-	{
-		std::string ip;
-		bool isIn=false;
-		int id = 0;
-		bool isMaster = false;
-		bool isValid()
-		{
-			return ip.length()>6 && (ip!="0.0.0.0");
-		}
-		CCamera *camera;
-		CameraOBJ* masterObj;
-		CameraOBJ()
-		{
-			camera = new CCamera();
-			camera->_ADD_LOG = addLog;
-		}
-	};
 	SyncVector<CameraOBJ*> m_Cameras;
 	SyncMap<std::string,CameraOBJ*> m_cameraMap;
 	std::string serverIP;

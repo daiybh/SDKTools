@@ -13,7 +13,7 @@ public:
 	void  sendHeartBeat() {
 
 	}
-	bool sendCarComing(std::string &carNo, std::string &ip) {
+	bool sendCarComing(std::string carNo, std::string ip) {
 		auto cmdstr = handleCmd.makeCarcomingCmd(carNo, ip);
 		int nRet = Send(cmdstr.data(), cmdstr.length());
 		auto retStr = ReadData(m_sockfd);

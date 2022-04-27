@@ -117,11 +117,10 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 		return FALSE;
 	}
 }
-#include "tcpServer.h"
-#include "tcpClient.h"
-#include "handleCmd.h"
+#include "mainctrl.h"
 int main(int argc, char *argv[])
 {
+
 	HANDLE mutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, "store.hyman.sdk_TOOLs.Mutex");
 	if (mutex == nullptr)
 		mutex = CreateMutexA(nullptr, FALSE, "store.hyman.sdk_TOOLs.Mutex");
@@ -140,7 +139,7 @@ int main(int argc, char *argv[])
 	SetUnhandledExceptionFilter((LPTOP_LEVEL_EXCEPTION_FILTER)ApplicationCrashHandler);
 	initLogger(nullptr);
 	printf("\n----------SDKTOOls  ----\n");
-	Worker worker;
-	worker.start(argc);
+	MainCtrl ctrl;
+	ctrl.init();
 	return 0;
 }
