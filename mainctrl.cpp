@@ -40,11 +40,13 @@ void MainCtrl::init()
 		printf("\n%p", item);
 	}
 	Load();
+
+	
 	m_heartThread = std::thread([&]() {
 
 		simplyLogger m_logger = std::make_shared<SimplyLive::Logger>();
 		m_logger->setPath(L"\\logs\\main_heartThread.log");
-		int i = 0;
+		int i = 979;
 		while (1) {
 
 
@@ -53,10 +55,16 @@ void MainCtrl::init()
 			if (!bret)
 			{
 				m_logger->error("ConnectToHost failed. {} {}", Config::instance().serverIP, Config::instance().serverPort);
+				continue;
 			}
 			auto acar = fmt::format("´¨A{:05d}", i++);
-			bret = client.sendCarComing(acar.data(), "127.0.0.1");
-			Sleep(10 * 1000);
+			bret = client.sendCarComing(m_logger,acar.data(), "127.0.0.1");
+			Sleep(5 * 1000);
+			for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
+			{
+				bret = client.sendCarComing(m_logger,acar.data(), Config::instance().m_Cameras[i]->ip.data());
+				Sleep(5* 1000);
+			}
 		}
 		});
 	
@@ -109,7 +117,7 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 			m_logger->error("ConnectToHost failed.try again {} {}", Config::instance().serverIP, Config::instance().serverPort);
 			continue;
 		}
-		bret = client.sendCarComing(SmartResultEx->platenum, SmartResultEx->camerIp);
+		bret = client.sendCarComing(m_logger,SmartResultEx->platenum, SmartResultEx->camerIp);
 		if (bret)break;
 		m_logger->error("sendCarComing failed.try again {} {}", SmartResultEx->platenum, SmartResultEx->camerIp);
 	}

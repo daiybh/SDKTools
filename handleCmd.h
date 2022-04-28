@@ -1,15 +1,13 @@
 #pragma  once
 #include "fmt/format.h"
 #include <fmt/chrono.h>
-static char hex_table[] = { '0','1','2','3','4' ,'5' ,'6' ,'7' ,'8' ,'9','A','B' };
+static char hex_table[] = { '0','1','2','3','4' ,'5' ,'6' ,'7' ,'8' ,'9','A','B','C','D','E','F'};
 #include "config.h"
 class HandleCmd
 {
 public:
 	HandleCmd() {
 		m_sn = Config::instance().serverSN;
-		makeCarcomingCmd("ÏæAC8888","192.168.0.123");
-
 	}
 	char bbcCheck(char* buffer, int nLen)
 	{
@@ -21,9 +19,11 @@ public:
 	}
 	void buildCmd() {
 		std::string xCmd = "%CLOD0036CARDNUM 00\r\nBS20220001, ÏæAC8888, 20220407163254\r\n5B@";
-		
-		
-		parseCmd(xCmd.data(),xCmd.length());
+		//xCmd = " %CLOD0049CARDNUM 00 BS20220001,´¨A00983,10.25.21.245,20220428142437"
+			xCmd = fmt::format("{}\r\n","BS20220001,´¨A00983,10.25.21.245,20220428142437");
+			std::string aa = buildAllCmd("%CLOD0049CARDNUM 00", xCmd);
+			
+			parseCmd(xCmd.data(),xCmd.length());
 	}
 	std::string makeHeartCmd() {
 		std::string cmd = "%CLOD0027ONLINE  00\r\n";
@@ -53,8 +53,8 @@ BS20220001,ÏæAC1079,20220426170021
 	}
 	bool parseCmd(char*pData,int nLen) {
 		char bbcCode = bbcCheck(pData+1, nLen - 6);
-		char x1 = pData[nLen - 4];
-		char x2 = pData[nLen - 3];
+		char x1 = pData[nLen - 3];
+		char x2 = pData[nLen - 2];
 		
 
 

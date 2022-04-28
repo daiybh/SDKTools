@@ -13,11 +13,12 @@ public:
 	void  sendHeartBeat() {
 
 	}
-	bool sendCarComing(std::string carNo, std::string ip) {
+	bool sendCarComing(simplyLogger _logger,std::string carNo, std::string ip) {
 		auto cmdstr = handleCmd.makeCarcomingCmd(carNo, ip);
+		_logger->info("send to {}  {} \n {}", carNo, ip, cmdstr);
 		int nRet = Send(cmdstr.data(), cmdstr.length());
 		auto retStr = ReadData(m_sockfd);
-		printf("\n retStr \n %s", retStr);
+		_logger->info("recv {}  ", retStr);
 		return true;
 	}
 private:

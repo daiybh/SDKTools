@@ -72,11 +72,15 @@ void TCPServer::do_communication(int cfd)
 	int recvlen;
 	TCPBase base;
 	HandleCmd  handleCmd;
+	m_logger->info("do_communication {}", cfd);
 	while (1) {
 
 		memset(buf, 0, sizeof(buf));
 		int nret = base.ReadData(cfd, buf, 1024);
-		if (nret<1)break;
+		if (nret < 1)
+		{
+			break;
+		}
 
 		Header* pHeader = (Header*)buf;
 		if(pHeader->cmdFlag!='C')continue;
@@ -141,6 +145,7 @@ void TCPServer::do_communication(int cfd)
 		}
 	}
 
+	m_logger->info("do_communication {} end", cfd);
 	closesocket(cfd);
 	return ;
 }
@@ -184,7 +189,7 @@ void TCPServer::callBack()
 			inet_ntop(sin.sin_family, &sin.sin_addr, clientIP, sizeof(clientIP));
 
 			std::lock_guard<std::shared_mutex> lock(m_lock);
-			m_logger->info("new client {}:{}", clientIP, sin.sin_port);
+			m_logger->info("new client {}:{}  fd:{}", clientIP, sin.sin_port,(int)clientSocket);
 			for (int i = 0; i < 10; i++)
 			{
 				if (m_client[i] == -1)
