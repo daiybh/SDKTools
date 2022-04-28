@@ -77,9 +77,6 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 #include "mainctrl.h"
 int main(int argc, char *argv[])
 {
-	HandleCmd hc;
-	std::string cmd = "%CLOD0037RISEPOLE00\r\nBS20220001,127.0.0.1,20220428144813\r\n14@";
-	hc.parseCmd(cmd.data(), cmd.length());
 
 	HANDLE mutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, "store.hyman.sdk_TOOLs.Mutex");
 	if (mutex == nullptr)

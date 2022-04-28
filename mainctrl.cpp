@@ -57,14 +57,8 @@ void MainCtrl::init()
 				m_logger->error("ConnectToHost failed. {} {}", Config::instance().serverIP, Config::instance().serverPort);
 				continue;
 			}
-			auto acar = fmt::format("´¨A{:05d}", i++);
-			bret = client.sendCarComing(m_logger,acar.data(), "127.0.0.1");
-			Sleep(5 * 1000);
-			for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
-			{
-				bret = client.sendCarComing(m_logger,acar.data(), Config::instance().m_Cameras[i]->ip.data());
-				Sleep(5* 1000);
-			}
+			client.sendHeartBeat();
+			Sleep(10 * 1000);
 		}
 		});
 	
