@@ -46,10 +46,8 @@ void MainCtrl::init()
 
 		simplyLogger m_logger = std::make_shared<SimplyLive::Logger>();
 		m_logger->setPath(L"\\logs\\main_heartThread.log");
-		int i = 979;
 		while (1) {
-
-
+			Sleep(10 * 1000);
 			TcpClient client;
 			bool bret = client.ConnectToHost(Config::instance().serverIP.data(), Config::instance().serverPort);
 			if (!bret)
@@ -58,7 +56,6 @@ void MainCtrl::init()
 				continue;
 			}
 			client.sendHeartBeat();
-			Sleep(10 * 1000);
 		}
 		});
 	
