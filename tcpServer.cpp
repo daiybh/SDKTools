@@ -103,23 +103,29 @@ void TCPServer::do_communication(int cfd)
 			if (!handleCmd.parseCmd(buf, nret))
 			{
 				bFailed = 1;
+				m_logger->error("parseCmd failed ");
 				break;
 			}
 
 			RisePole* rp = (RisePole*)buf;
 			if (!rp->isValid()) {
 				bFailed = 2;
+
+				m_logger->error("risePole  isvalid==false");
 				break;
 			};;
 			std::string body = rp->body;
 			size_t pos = body.find(',');
 			if (pos == std::string::npos) {
 				bFailed = 3;
+
+				m_logger->error("split body failed");
 				break;
 			};;
 			size_t pos2 = body.find(',', pos + 1);
 			if (pos2 == std::string::npos) {
 				bFailed = 4;
+				m_logger->error("split body failed");
 				break;
 			};
 			std::string ip = body.substr(pos + 1, pos2 - pos - 1);

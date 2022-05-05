@@ -43,7 +43,7 @@ struct RisePole:public Header
 	bool isValid()
 	{
 		if (!Header::isValid())return false;
-		return (stricmp(text, "RISEPOLE") == 0);
+		return (_strnicmp(text, "RISEPOLE",8) == 0);
 	}
 
 
