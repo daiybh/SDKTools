@@ -34,10 +34,11 @@ def sendMail_189(subject,text,z,zip_name):
 
     print('smtp_server',smtp_server)
     server = smtplib.SMTP(smtp_server, 25) # SMTP协议默认端口是25
-    server.set_debuglevel(1)
+    #server.set_debuglevel(1)
     server.login(from_addr, password)
     server.sendmail(from_addr, to_addr.split(','), m.as_string())
     server.quit()
+    print("over")
 
 
 
