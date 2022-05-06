@@ -20,8 +20,8 @@ struct CameraOBJ
 	{
 		return ip.length() > 6 && (ip != "0.0.0.0");
 	}
-	CCamera* camera;
-	CameraOBJ* masterObj;
+	CCamera* camera = nullptr;
+	CameraOBJ* masterObj=nullptr;
 	CameraOBJ()
 	{
 		camera = new CCamera();
@@ -145,7 +145,7 @@ private:
 				if (j == 0)
 					masterObj = obj;
 				obj->isMaster = j==0;
-				
+				obj->masterObj = masterObj;
 				obj->ip = item;
 				obj->camera->m_curID = m_Cameras.size();
 				strcpy(obj->camera->m_ipaddrstr, item.data());
@@ -179,6 +179,7 @@ private:
 					masterObj = obj;
 				obj->isMaster = j == 0;
 
+				obj->masterObj = masterObj;
 				obj->ip = item;
 				obj->camera->m_curID = m_Cameras.size();
 				strcpy(obj->camera->m_ipaddrstr, item.data());
