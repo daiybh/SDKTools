@@ -95,7 +95,7 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 		return;
 	CameraOBJ* cameraOBJ = Config::instance().m_Cameras[pCamera->m_curID];
 
-	m_logger->info("地点:%s IP:%s 车牌:%s realbility:%.2f carstatus:%d curID:%d bIn:%d\n",
+	m_logger->info("地点:{} IP:{} 车牌:{} realbility:{} carstatus:{} curID:{} bIn:{}",
 		SmartResultEx->DevName, SmartResultEx->camerIp,
 		SmartResultEx->platenum, SmartResultEx->realbility, SmartResultEx->carstatus,
 		pCamera->m_curID, cameraOBJ->isIn);
