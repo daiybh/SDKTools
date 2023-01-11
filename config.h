@@ -72,10 +72,10 @@ public:
 private:
 	bool bWriteIni = false;
 
-	int getConfigInt(const char* szApp, const char* szKey)
+	int getConfigInt(const char* szApp, const char* szKey,char*defaultValue="")
 	{
 		if (bWriteIni)
-			WritePrivateProfileStringA(szApp, szKey, "", m_ConfigPathA.data());
+			WritePrivateProfileStringA(szApp, szKey, defaultValue, m_ConfigPathA.data());
 		return GetPrivateProfileIntA(szApp, szKey, 0, m_ConfigPathA.data());
 	}
 	int getConfigString(const char* szApp, const char* szKey, char* retVal,char*defaultValue="")
@@ -122,9 +122,11 @@ private:
 			return ipArr;
 
 		};
+		int cameraCount = getConfigInt("main", "cameraCount");
+		if (cameraCount < 1)cameraCount = 10;
 
 		//In door
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < cameraCount; i++)
 		{
 			sprintf_s(szKey, "ip_%d", i );
 
@@ -156,7 +158,7 @@ private:
 			ipValid = true;
 		}
 		//out door
-		for (int i = 0; i < 4; i++)
+		for (int i = 0; i < cameraCount; i++)
 		{
 			sprintf_s(szKey, "ip_%d", i);
 
