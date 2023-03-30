@@ -2,3 +2,5 @@
 build/
 .vs/
 out/
+bin/
+__pycache__/

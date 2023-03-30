@@ -17,3 +17,7 @@ target_link_libraries(SDKTOOLS PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(SDKTOOLS PRIVATE fmt::fmt-header-only)
 
 target_compile_features(SDKTOOLS PRIVATE cxx_std_17)
+
+
+set(CMAKE_INSTALL_PREFIX ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+install (TARGETS SDKTOOLS RUNTIME DESTINATION ${CMAKE_CURRENT_SOURCE_DIR}/bin)
