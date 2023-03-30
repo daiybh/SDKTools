@@ -66,19 +66,20 @@ int TCPServer::start(simplyLogger _logger, int _port, RisePoleFunc _func)
 }
 #include "tcpBase.h"
 #include "handleCmd.h"
-void TCPServer::do_communication(int cfd)
+void TCPServer::do_communication(ClientInfo clientInfo)
 {
 	char buf[1024] = { 0 };
 	int recvlen;
 	TCPBase base;
 	HandleCmd  handleCmd;
-	m_logger->info("do_communication {}", cfd);
+	m_logger->info("do_communication {} {}", clientInfo.ipos, clientInfo.socketCfd);
 	while (1) {
 
 		memset(buf, 0, sizeof(buf));
-		int nret = base.ReadData(cfd, buf, 1024);
+		int nret = base.ReadData(clientInfo.socketCfd, buf, 1024);
 		if (nret < 1)
 		{
+			m_logger->debug("readData Error {}",nret );
 			break;
 		}
 
@@ -91,7 +92,7 @@ void TCPServer::do_communication(int cfd)
  BS20220001,192.168.0.243,20220407163254
  25@
 
- 客户端响应的数据:
+ 瀹㈡埛绔搷搴旂殑鏁版嵁:
  %RLOD0027RISEPOLE00
  BS20220001,192.168.0.243,20220407191532
  2A@
@@ -137,7 +138,7 @@ void TCPServer::do_communication(int cfd)
 			bool bReet = m_RisePoleFunc(ip);
 
 			auto response = handleCmd.makeRaisePoleResponse(ip);
-			int nLen = send(cfd, response.data(), response.length(), 0);
+			int nLen = send(clientInfo.socketCfd, response.data(), response.length(), 0);
 			if (nLen != response.length())
 			{
 				bFailed = 6;
@@ -151,11 +152,14 @@ void TCPServer::do_communication(int cfd)
 		}
 	}
 
-	m_logger->info("do_communication {} end", cfd);
-	closesocket(cfd);
+	m_logger->info("do_communication {} {} end",clientInfo.ipos, clientInfo.socketCfd);
+	closesocket(clientInfo.socketCfd);
+	closeClient(clientInfo.ipos);
 	return ;
 }
 #include "handleCmd.h"
+
+
 void TCPServer::heartThread()
 {
 	HandleCmd  cmd;
@@ -178,6 +182,12 @@ void TCPServer::heartThread()
 	}
 }
 
+void TCPServer::closeClient(int ipos)
+{
+	std::lock_guard<std::shared_mutex> lock(m_lock);
+	if (ipos >= 0 && ipos < 10)
+		m_client[ipos] = -1;
+}
 void TCPServer::callBack()
 {
 	SOCKET clientSocket;
@@ -201,8 +211,10 @@ void TCPServer::callBack()
 				if (m_client[i] == -1)
 				{
 					m_client[i] = clientSocket; 
-					
-					std::thread t = std::thread(&TCPServer::do_communication, this, (int)clientSocket);
+					ClientInfo ci;
+					ci.ipos = i;
+					ci.socketCfd = clientSocket;
+					std::thread t = std::thread(&TCPServer::do_communication, this, ci);
 					t.detach();
 					break;
 				}

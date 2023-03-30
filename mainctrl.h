@@ -13,17 +13,18 @@ public:
 		m_logger->setPath(L".\\logs\\mainctrl.log");
 	}
 	void init();
-	void Load();
+	void TryReconnectCameras(simplyLogger _logger);
 
 	void __stdcall ADD_LOG_CALLBACK(const char* log, void* UserParam);
-	//×´Ì¬»Øµôº¯Êı
+	//çŠ¶æ€å›æ‰å‡½æ•°
 	void __stdcall 		NET_CONSTAUSCALLBACK(NET_DEV_STATUS* status, void* UserParam);
 
-	// ¾«¼òµÄÊ¶±ğ½á¹û»Øµ÷º¯Êı 
+	// ç²¾ç®€çš„è¯†åˆ«ç»“æœå›è°ƒå‡½æ•° 
 	void __stdcall 		NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* SmartResultEx, char* pJpeg, int* nLength, char* userdata, void* UserParam);
 	bool RaisePole(std::string& ip);
 private:
 	TCPServer m_tcpServer;
 	std::thread m_heartThread;
+	std::thread m_moniterThread;
 	simplyLogger m_logger;
 };

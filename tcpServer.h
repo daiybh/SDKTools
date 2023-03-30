@@ -13,6 +13,7 @@ private:
 	uint64_t           m_listenSocket;;
 	
 	uint64_t m_client[10];
+	void closeClient(int cfd);
 	std::shared_mutex		m_lock;
 
 	RisePoleFunc m_RisePoleFunc;
@@ -20,7 +21,12 @@ private:
 
 	void heartThread();
 protected:
-	void do_communication(int cfd);
+	struct ClientInfo
+	{
+		int socketCfd;
+		int ipos;
+	};
+	void do_communication(ClientInfo cfd);
 
 	void callBack() override;	
 

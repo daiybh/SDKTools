@@ -60,13 +60,17 @@ public:
 		getConfigString("server", "serverSN", szBuf1,"BS20220001");
 		serverSN = szBuf1;
 		loadCameras();
+
+		monitorTHreadTime = getConfigInt("main", "monitor", "1") *1000;
+		if (monitorTHreadTime < 1)
+			monitorTHreadTime = 1000;
 	}
 	std::string serverSN;
 	SyncVector<CameraOBJ*> m_Cameras;
 	SyncMap<std::string,CameraOBJ*> m_cameraMap;
 	std::string serverIP;
 	int         serverPort;
-
+	int monitorTHreadTime = 1000;
 	int localPort;
 
 private:

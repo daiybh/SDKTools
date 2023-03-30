@@ -8,14 +8,14 @@ namespace StaticClass {
 		//if (g_pthis)			g_pthis->addLog(log, (CCamera*)UserParam);
 
 	}
-	//×´Ì¬»Øµôº¯Êý
+	//çŠ¶æ€å›žæŽ‰å‡½æ•°
 	static void __stdcall 		NET_CONSTAUSCALLBACK(NET_DEV_STATUS* status, void* UserParam) {
 		//if (g_pthis)			g_pthis->addLog("NET_CONSTAUSCALLBACK ", (CCamera*)UserParam);
 
 
 	}
 
-	// ¾«¼òµÄÊ¶±ð½á¹û»Øµ÷º¯Êý 
+	// ç²¾ç®€çš„è¯†åˆ«ç»“æžœå›žè°ƒå‡½æ•° 
 	static void __stdcall 		NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* SmartResultEx, char* pJpeg, int* nLength, char* userdata, void* UserParam)
 	{
 		if (g_pthis)
@@ -39,9 +39,18 @@ void MainCtrl::init()
 
 		printf("\n%p", item);
 	}
-	Load();
 
-	
+	m_moniterThread = std::thread([&]() {	
+
+		simplyLogger _logger = std::make_shared<SimplyLive::Logger>();
+		_logger->setPath(L"\\logs\\moniter.log");
+		while (1)
+		{
+			TryReconnectCameras(_logger);
+			Sleep(Config::instance().monitorTHreadTime);
+		}
+
+		});
 	m_heartThread = std::thread([&]() {
 
 		simplyLogger m_logger = std::make_shared<SimplyLive::Logger>();
@@ -64,13 +73,16 @@ void MainCtrl::init()
 	m_logger->info("tcpServer start({}) {}", Config::instance().localPort, nret == 0 ? "sucessd" : "failed");
 }
 
-void MainCtrl::Load()
+void MainCtrl::TryReconnectCameras(simplyLogger _logger)
 {
 	for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
 	{
 		auto item = Config::instance().m_Cameras[i];
-		if (item->camera->m_caminstance == 0)
-			item->camera->connect();
+		if (item->camera->m_caminstance <= 0)
+		{
+			bool b = item->camera->tryReconnect();
+			_logger->info("{}>>{} reconnect()={} ", i, item->ip, b);
+		}
 	}
 }
 
@@ -95,7 +107,7 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 		return;
 	CameraOBJ* cameraOBJ = Config::instance().m_Cameras[pCamera->m_curID];
 
-	m_logger->info("µØµã:{} IP:{} ³µÅÆ:{} realbility:{} carstatus:{} curID:{} bIn:{}",
+	m_logger->info("åœ°ç‚¹:{} IP:{} è½¦ç‰Œ:{} realbility:{} carstatus:{} curID:{} bIn:{}",
 		SmartResultEx->DevName, SmartResultEx->camerIp,
 		SmartResultEx->platenum, SmartResultEx->realbility, SmartResultEx->carstatus,
 		pCamera->m_curID, cameraOBJ->isIn);
@@ -123,8 +135,9 @@ bool MainCtrl::RaisePole(std::string& ip)
 		m_logger->error("raisePole  {} failed .don't found correct IP", ip);
 		return false;
 	}
-
+	
+	bool tryReconnect = obj->masterObj->camera->tryReconnect();
 	bool b = obj->masterObj->camera->openDoor();
-	m_logger->info("raisePole  {}  openDoor={}", ip, b);
+	m_logger->info("raisePole  {} ,reconnet({}) openDoor={}", ip, tryReconnect, b);
 	return true;
 }
