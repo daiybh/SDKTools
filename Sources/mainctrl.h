@@ -12,6 +12,7 @@ public:
 		m_logger = std::make_shared<SimplyLive::Logger>();
 		m_logger->setPath(L".\\logs\\mainctrl.log");
 	}
+	void Test();
 	void init();
 	void TryReconnectCameras(simplyLogger _logger);
 
@@ -27,4 +28,5 @@ private:
 	std::thread m_heartThread;
 	std::thread m_moniterThread;
 	simplyLogger m_logger;
+	bool bExit=false;
 };

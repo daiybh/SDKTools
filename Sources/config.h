@@ -51,10 +51,10 @@ public:
 		{
 			bWriteIni = true;
 		}
-		localPort = getConfigInt("main", "localListenPort");
-		serverPort = getConfigInt("server", "ListenPort");
+		localPort = getConfigInt("main", "localListenPort","2345");
+		serverPort = getConfigInt("server", "ListenPort","1983");
 
-		getConfigString("server", "IP",szBuf1);
+		getConfigString("server", "IP",szBuf1,serverIP.data());
 		serverIP = szBuf1;
 
 		getConfigString("server", "serverSN", szBuf1,"BS20220001");
@@ -68,10 +68,10 @@ public:
 	std::string serverSN;
 	SyncVector<CameraOBJ*> m_Cameras;
 	SyncMap<std::string,CameraOBJ*> m_cameraMap;
-	std::string serverIP;
-	int         serverPort;
+	std::string serverIP="127.0.0.1";
+	int         serverPort=1983;
 	int monitorTHreadTime = 1000;
-	int localPort;
+	int localPort=2345;
 
 private:
 	bool bWriteIni = false;

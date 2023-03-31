@@ -1,5 +1,6 @@
 #include "mainctrl.h"
 #include "logLib.h"
+#include <conio.h>
 MainCtrl* g_pthis = nullptr;
 namespace StaticClass {
 
@@ -10,7 +11,8 @@ namespace StaticClass {
 	}
 	//状态回掉函数
 	static void __stdcall 		NET_CONSTAUSCALLBACK(NET_DEV_STATUS* status, void* UserParam) {
-		//if (g_pthis)			g_pthis->addLog("NET_CONSTAUSCALLBACK ", (CCamera*)UserParam);
+		if (g_pthis)
+			g_pthis->NET_CONSTAUSCALLBACK(status, UserParam);
 
 
 	}
@@ -24,9 +26,28 @@ namespace StaticClass {
 		}
 	}
 };
+void MainCtrl::Test()
+{
+	NET_DEV_SMARTRECRESUT_EX ndes;
+	strcpy(ndes.DevName , "test");
+	strcpy(ndes.camerIp, "19.19.19.19");
+	strcpy(ndes.platenum, "platenum");
+	ndes.realbility = 9;
+	ndes.carstatus = 10;
+	for (int j = 0; j < 3; j++)
+		for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
+		{
+			CameraOBJ* obj = Config::instance().m_Cameras[i];
+			strcpy(ndes.camerIp, obj->ip.data());
+
+			ndes.carstatus = j*100+i;
+			this->NET_SMARTRECVCALLBACK_EX(&ndes, nullptr, 0, 0, (void*)obj->camera);
+		}
+	
+	
+}
 void MainCtrl::init()
 {
-
 	m_logger->info("init");
 	g_pthis = this;
 	for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
@@ -44,7 +65,7 @@ void MainCtrl::init()
 
 		simplyLogger _logger = std::make_shared<SimplyLive::Logger>();
 		_logger->setPath(L"\\logs\\moniter.log");
-		while (1)
+		while (!bExit)
 		{
 			TryReconnectCameras(_logger);
 			Sleep(Config::instance().monitorTHreadTime);
@@ -52,25 +73,42 @@ void MainCtrl::init()
 
 		});
 	m_heartThread = std::thread([&]() {
-
 		simplyLogger m_logger = std::make_shared<SimplyLive::Logger>();
 		m_logger->setPath(L"\\logs\\main_heartThread.log");
-		while (1) {
+		while (!bExit) {
 			Sleep(10 * 1000);
 			TcpClient client;
 			bool bret = client.ConnectToHost(Config::instance().serverIP.data(), Config::instance().serverPort);
-			if (!bret)
-			{
+			if (!bret)			
 				m_logger->error("ConnectToHost failed. {} {}", Config::instance().serverIP, Config::instance().serverPort);
-				continue;
-			}
-			client.sendHeartBeat();
+			else
+				client.sendHeartBeat();
 		}
 		});
-	
-
 	int nret = m_tcpServer.start(m_logger,Config::instance().localPort, std::bind(&MainCtrl::RaisePole,this,  std::placeholders::_1));
 	m_logger->info("tcpServer start({}) {}", Config::instance().localPort, nret == 0 ? "sucessd" : "failed");
+	int  key = 0;
+	uint64_t tloop = 0;
+	while (!bExit)
+	{
+		Sleep(10);
+		if (tloop++ % 100 == 0)
+			Test();
+		if (_kbhit() == 0)
+			continue;
+
+		key = _getch();
+		if (key == 'Q') {
+			bExit = true;
+			break;
+		}
+		else if (key == 'T') {
+			Test();
+		}
+
+	}
+	m_heartThread.join();
+	m_moniterThread.join();
 }
 
 void MainCtrl::TryReconnectCameras(simplyLogger _logger)
@@ -94,8 +132,9 @@ void __stdcall MainCtrl::ADD_LOG_CALLBACK(const char* log, void* UserParam)
 
 void __stdcall MainCtrl::NET_CONSTAUSCALLBACK(NET_DEV_STATUS* status, void* UserParam)
 {
-	//if (g_pthis)
-	//	g_pthis->addLog("NET_CONSTAUSCALLBACK ", (CCamera*)UserParam);
+	CCamera* pCamera = (CCamera*)UserParam;
+	if (pCamera == nullptr)return;
+	m_logger->info("NET_CONSTAUSCALLBACK {} status:{}",pCamera->m_ipaddrstr,status->status);
 }
 
 void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* SmartResultEx, char* pJpeg, int* nLength, char* userdata, void* UserParam)
@@ -131,7 +170,6 @@ bool MainCtrl::RaisePole(std::string& ip)
 	CameraOBJ* obj = nullptr;
 	if (!Config::instance().m_cameraMap.find(ip, obj))
 	{
-
 		m_logger->error("raisePole  {} failed .don't found correct IP", ip);
 		return false;
 	}
@@ -140,4 +178,4 @@ bool MainCtrl::RaisePole(std::string& ip)
 	bool b = obj->masterObj->camera->openDoor();
 	m_logger->info("raisePole  {} ,reconnet({}) openDoor={}", ip, tryReconnect, b);
 	return true;
-}
+} 

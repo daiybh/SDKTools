@@ -61,7 +61,7 @@ int TCPServer::start(simplyLogger _logger, int _port, RisePoleFunc _func)
 	m_logger->info("tcpServer start({}) sucessed", _port);
 
 	startThread(EasyThread::Priority::normal);
-	m_heartThread.join();
+	m_heartThread.detach();
 	return 0;
 }
 #include "tcpBase.h"
@@ -85,7 +85,7 @@ void TCPServer::do_communication(ClientInfo clientInfo)
 
 		Header* pHeader = (Header*)buf;
 		if(pHeader->cmdFlag!='C')continue;
-		printf("\n\nrecvstr,\n%s", buf);
+		m_logger->debug("recvstr,{}", buf);
 
 		/*
 		 %CLOD0027RISEPOLE00
