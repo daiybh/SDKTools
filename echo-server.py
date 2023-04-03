@@ -1,5 +1,6 @@
 import socket
 import json
+import array
 HOST = "127.0.0.1"  # Standard loopback interface address (localhost)
 PORT = 1983  # Port to listen on (non-privileged ports are > 1023)
 
@@ -11,10 +12,32 @@ msg = {
 	"timestamp": 1677893097
 	}
 }
+def MakeCommad(ip):
+    header=f"%CLOD0038RISEPOLE00"
+    data=f"\r\nBS20220001,{ip},20220407163254"
+    sList = list(header)
+    nLen = len(data)
+    sList[5] = str(nLen//1000)
+    sList[6] = str((nLen % 1000) // 100) 
+    sList[7] = str((nLen % 100) // 10) 
+    sList[8] = str((nLen % 10) // 1 )
+    header = ''.join(sList)
+    allData = header+data
+    ar = allData.encode('utf-8')
+    bbcint=ar[1]
+    
+    for a in ar[2:]:
+        bbcint ^= a
+    
+    allData+= '\r\n'+str(bbcint//10)+str((bbcint%10)//1)+'@'
+    return allData
+        
+
 def sendClient(ip):
-    data="%CLOD0041RISEPOLE00\r\nBS20220001,192.168.0.243,20220407163254\r\n25@"
+    data= "%CLOD0041RISEPOLE00\r\nBS20220001,192.168.0.243,20220407163254\r\n25@"
     data=f"%CLOD0038RISEPOLE00\r\nBS20220001,{ip},20220407163254\r\n25@"
     v=   "%CLOD0047CARDNUM 00\r\nBS20220001,platenum,192.0.0.51,20230330233903\r\n5D@"
+    data = MakeCommad(ip)
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         s.connect((HOST, 2345))
         print(len(data))

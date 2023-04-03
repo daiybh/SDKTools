@@ -28,21 +28,30 @@ namespace StaticClass {
 };
 void MainCtrl::Test()
 {
-	NET_DEV_SMARTRECRESUT_EX ndes;
-	strcpy(ndes.DevName , "test");
-	strcpy(ndes.camerIp, "19.19.19.19");
-	strcpy(ndes.platenum, "platenum");
-	ndes.realbility = 9;
-	ndes.carstatus = 10;
-	for (int j = 0; j < 3; j++)
-		for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
-		{
+	std::thread t[30];
+
+	for (int j = 0; j < Config::instance().m_Cameras.size(); j++)
+	{
+		t[j] = std::thread([&](int i) {
+
+			NET_DEV_SMARTRECRESUT_EX ndes;
+			strcpy(ndes.DevName, "test");
+			strcpy(ndes.camerIp, "19.19.19.19");
+			strcpy(ndes.platenum, "platenum");
+			ndes.realbility = 9;
+			ndes.carstatus = 10;
 			CameraOBJ* obj = Config::instance().m_Cameras[i];
 			strcpy(ndes.camerIp, obj->ip.data());
-
-			ndes.carstatus = j*100+i;
-			this->NET_SMARTRECVCALLBACK_EX(&ndes, nullptr, 0, 0, (void*)obj->camera);
-		}
+			ndes.carstatus = i;
+			while (1)
+			{
+				this->NET_SMARTRECVCALLBACK_EX(&ndes, nullptr, 0, 0, (void*)obj->camera);
+				Sleep(1000);
+			}
+			}, j);
+	}
+	
+	t[0].join();
 	
 	
 }
@@ -89,11 +98,11 @@ void MainCtrl::init()
 	m_logger->info("tcpServer start({}) {}", Config::instance().localPort, nret == 0 ? "sucessd" : "failed");
 	int  key = 0;
 	uint64_t tloop = 0;
+	
 	while (!bExit)
 	{
 		Sleep(10);
-		if (tloop++ % 100 == 0)
-			Test();
+		
 		if (_kbhit() == 0)
 			continue;
 
@@ -103,7 +112,7 @@ void MainCtrl::init()
 			break;
 		}
 		else if (key == 'T') {
-			Test();
+			//Test();
 		}
 
 	}
