@@ -74,10 +74,38 @@ void MainCtrl::init()
 
 		simplyLogger _logger = std::make_shared<SimplyLive::Logger>();
 		_logger->setPath(L"\\logs\\moniter.log");
+		uint64_t m_nRestartTime = 0;
 		while (!bExit)
 		{
 			TryReconnectCameras(_logger);
 			Sleep(Config::instance().monitorTHreadTime);
+
+			auto pRestartFun = [&]() {
+				struct tm local;
+				time_t t;
+				t = time(NULL);
+				localtime_s(&local, &t);
+				bool bNeedRestart1 = false;// (local.tm_hour == 1 && local.tm_min == 0 && local.tm_sec == 0);
+				//check if Now is the restart point.  01:00:xx
+				bool bNeedRestart2 = (local.tm_hour == Config::instance().reStartHour && local.tm_min == Config::instance().reStartMinute);
+				
+				// check if the app Had start.  
+				// if no  then  (GetTickCount() - m_nRestartTime) will be a huge
+				if ((bNeedRestart2) && (GetTickCount() - m_nRestartTime > 1000 * 60 * (2)))
+				{
+					m_nRestartTime = GetTickCount();
+					return true;
+				}
+				return false;
+			};
+			if (pRestartFun())
+			{
+				_logger->error("============RERSATR=============");
+				Sleep(100);
+				bExit = true;
+				exit(0);
+			}
+			
 		}
 
 		});
@@ -96,26 +124,7 @@ void MainCtrl::init()
 		});
 	int nret = m_tcpServer.start(m_logger,Config::instance().localPort, std::bind(&MainCtrl::RaisePole,this,  std::placeholders::_1));
 	m_logger->info("tcpServer start({}) {}", Config::instance().localPort, nret == 0 ? "sucessd" : "failed");
-	int  key = 0;
-	uint64_t tloop = 0;
 	
-	while (!bExit)
-	{
-		Sleep(10);
-		
-		if (_kbhit() == 0)
-			continue;
-
-		key = _getch();
-		if (key == 'Q') {
-			bExit = true;
-			break;
-		}
-		else if (key == 'T') {
-			//Test();
-		}
-
-	}
 	m_heartThread.join();
 	m_moniterThread.join();
 }

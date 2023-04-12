@@ -61,6 +61,11 @@ public:
 		serverSN = szBuf1;
 		loadCameras();
 
+		
+		getConfigString("main", "Restart", szBuf1, "2:58");
+
+		sscanf(szBuf1, "%d:%d", &reStartHour, &reStartMinute);
+
 		monitorTHreadTime = getConfigInt("main", "monitor", "1") *1000;
 		if (monitorTHreadTime < 1)
 			monitorTHreadTime = 1000;
@@ -71,6 +76,9 @@ public:
 	std::string serverIP="127.0.0.1";
 	int         serverPort=1983;
 	int monitorTHreadTime = 1000;
+	int reStartHour = 2;
+	int reStartMinute = 58;
+
 	int localPort=2345;
 
 private:
