@@ -14,6 +14,10 @@ find_package(fmt CONFIG REQUIRED)
 file(GLOB_RECURSE source_cpp "Sources/*.cpp")
 
 add_executable(SDKTOOLS ${source_cpp}	"wu_camera-sdk/inc/loglib.cpp" )
+
+set_target_properties(SDKTOOLS
+    PROPERTIES DEBUG_POSTFIX "${CMAKE_DEBUG_POSTFIX}")
+
 target_include_directories(SDKTOOLS PRIVATE wu_camera-sdk/inc)
 target_link_directories(SDKTOOLS PRIVATE wu_camera-sdk/lib)
 target_link_libraries(SDKTOOLS PRIVATE spdlog::spdlog_header_only)
