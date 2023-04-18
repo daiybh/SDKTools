@@ -149,7 +149,6 @@ void MainCtrl::RestartCameras(simplyLogger _logger)
 	for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
 	{
 		auto item = Config::instance().m_Cameras[i];
-		if (item->camera->m_caminstance <= 0)
 		{
 			bool b = item->camera->set_EYEST_NET_RESTART();
 			_logger->info("{}>>{} RestartCameras()={} ", i, item->ip, b);
