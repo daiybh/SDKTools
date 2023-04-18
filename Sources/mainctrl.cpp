@@ -125,8 +125,8 @@ void MainCtrl::init()
 	int nret = m_tcpServer.start(m_logger,Config::instance().localPort, std::bind(&MainCtrl::RaisePole,this,  std::placeholders::_1));
 	m_logger->info("tcpServer start({}) {}", Config::instance().localPort, nret == 0 ? "sucessd" : "failed");
 	
-	m_heartThread.join();
-	m_moniterThread.join();
+	//while (!bExit)Sleep(1000);
+	m_moniterThread.join();	
 }
 
 void MainCtrl::TryReconnectCameras(simplyLogger _logger)
