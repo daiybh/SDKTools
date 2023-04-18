@@ -87,7 +87,10 @@ void MainCtrl::init()
 				localtime_s(&local, &t);
 				bool bNeedRestart1 = false;// (local.tm_hour == 1 && local.tm_min == 0 && local.tm_sec == 0);
 				//check if Now is the restart point.  01:00:xx
-				bool bNeedRestart2 = (local.tm_hour == Config::instance().reStartHour && local.tm_min == Config::instance().reStartMinute);
+				bool bNeedRestart2 = 
+				(local.tm_hour == Config::instance().reStartHour 
+				&& local.tm_min == Config::instance().reStartMinute
+				&& local.tm_sec == Config::instance().reStartSecond);
 				
 				// check if the app Had start.  
 				// if no  then  (GetTickCount() - m_nRestartTime) will be a huge

@@ -62,9 +62,9 @@ public:
 		loadCameras();
 
 		
-		getConfigString("main", "Restart", szBuf1, "2:58");
+		getConfigString("main", "Restart", szBuf1, "2:58:01");
 
-		sscanf(szBuf1, "%d:%d", &reStartHour, &reStartMinute);
+		sscanf(szBuf1, "%d:%d:%d", &reStartHour, &reStartMinute,&reStartSecond);
 
 		monitorTHreadTime = getConfigInt("main", "monitor", "1") *1000;
 		if (monitorTHreadTime < 1)
@@ -78,6 +78,7 @@ public:
 	int monitorTHreadTime = 1000;
 	int reStartHour = 2;
 	int reStartMinute = 58;
+	int reStartSecond = 58;
 
 	int localPort=2345;
 
