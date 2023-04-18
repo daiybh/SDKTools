@@ -103,10 +103,9 @@ void MainCtrl::init()
 			};
 			if (pRestartFun())
 			{
-				_logger->error("============RERSATR=============");
-				Sleep(100);
-				bExit = true;
-				exit(0);
+				_logger->error("============RERSATR  begin=============");
+				RestartCameras(_logger);
+				_logger->error("============RERSATR  DONE=============");
 			}
 			
 		}
@@ -145,6 +144,18 @@ void MainCtrl::TryReconnectCameras(simplyLogger _logger)
 	}
 }
 
+void MainCtrl::RestartCameras(simplyLogger _logger)
+{
+	for (int i = 0; i < Config::instance().m_Cameras.size(); i++)
+	{
+		auto item = Config::instance().m_Cameras[i];
+		if (item->camera->m_caminstance <= 0)
+		{
+			bool b = item->camera->set_EYEST_NET_RESTART();
+			_logger->info("{}>>{} RestartCameras()={} ", i, item->ip, b);
+		}
+	}
+}
 void __stdcall MainCtrl::ADD_LOG_CALLBACK(const char* log, void* UserParam)
 {
 	//if (g_pthis)

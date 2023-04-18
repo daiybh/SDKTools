@@ -16,8 +16,10 @@ public:
 	void init();
 	void TryReconnectCameras(simplyLogger _logger);
 
-	void __stdcall ADD_LOG_CALLBACK(const char* log, void* UserParam);
-	//状态回掉函数
+    void RestartCameras(simplyLogger _logger);
+
+    void __stdcall ADD_LOG_CALLBACK(const char *log, void *UserParam);
+    //状态回掉函数
 	void __stdcall 		NET_CONSTAUSCALLBACK(NET_DEV_STATUS* status, void* UserParam);
 
 	// 精简的识别结果回调函数 
