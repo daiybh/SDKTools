@@ -1,6 +1,8 @@
+
 #include "mainctrl.h"
 #include "logLib.h"
 #include <conio.h>
+#include "httpClient.h"
 MainCtrl* g_pthis = nullptr;
 namespace StaticClass {
 
@@ -111,22 +113,8 @@ void MainCtrl::init()
 		}
 
 		});
-	m_heartThread = std::thread([&]() {
-		simplyLogger m_logger = std::make_shared<SimplyLive::Logger>();
-		m_logger->setPath(L"\\logs\\main_heartThread.log");
-		while (!bExit) {
-			Sleep(10 * 1000);
-			TcpClient client;
-			bool bret = client.ConnectToHost(Config::instance().serverIP.data(), Config::instance().serverPort);
-			if (!bret)			
-				m_logger->error("ConnectToHost failed. {} {}", Config::instance().serverIP, Config::instance().serverPort);
-			else
-				client.sendHeartBeat();
-		}
-		});
-	int nret = m_tcpServer.start(m_logger,Config::instance().localPort, std::bind(&MainCtrl::RaisePole,this,  std::placeholders::_1));
-	m_logger->info("tcpServer start({}) {}", Config::instance().localPort, nret == 0 ? "sucessd" : "failed");
 	
+		
 	//while (!bExit)Sleep(1000);
 	m_moniterThread.join();	
 }
@@ -181,18 +169,19 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 		SmartResultEx->DevName, SmartResultEx->camerIp,
 		SmartResultEx->platenum, SmartResultEx->realbility, SmartResultEx->carstatus,
 		pCamera->m_curID, cameraOBJ->isIn);
-	TcpClient client;
-	for (int i = 0; i < 3; i++)
+	for (int i = 0; i < 1; i++)
 	{
-		bool bret = client.ConnectToHost(Config::instance().serverIP.data(), Config::instance().serverPort);
-		if (!bret)
+		HttpClient::ResponseItem response=HttpClient::isInDsBlack(SmartResultEx->camerIp, SmartResultEx->platenum);
+		if (response.state == 0)
 		{
-			m_logger->error("ConnectToHost failed.try again {} {}", Config::instance().serverIP, Config::instance().serverPort);
+			m_logger->error("state=0 errormsg={}",response.errmsg );
 			continue;
 		}
-		bret = client.sendCarComing(m_logger,SmartResultEx->platenum, SmartResultEx->camerIp);
-		if (bret)break;
-		m_logger->error("sendCarComing failed.try again {} {}", SmartResultEx->platenum, SmartResultEx->camerIp);
+		if (response.state == 1)
+		{
+			//send to LED
+			pCamera->LEDScreen_setText(response.ips, response.texts);
+		}
 	}
 }
 

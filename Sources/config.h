@@ -41,7 +41,7 @@ public:
 		ZeroMemory(szBuf1, MAX_PATH);
 		GetModuleFileNameA(nullptr, szBuf1, MAX_PATH);
 		PathRemoveFileSpecA(szBuf1);
-		strcat(szBuf1, "\\sdkTool_Config.ini");
+		strcat(szBuf1, "\\Config.ini");
 		m_ConfigPathA = szBuf1;
 		m_logger = std::make_shared<SimplyLive::Logger>();
 		m_logger->setPath(L".\\logs\\config.log");
@@ -51,11 +51,11 @@ public:
 		{
 			bWriteIni = true;
 		}
-		localPort = getConfigInt("main", "localListenPort","2345");
-		serverPort = getConfigInt("server", "ListenPort","1983");
+		//localPort = getConfigInt("main", "localListenPort","2345");
+		//serverPort = getConfigInt("server", "ListenPort","1983");
 
-		getConfigString("server", "IP",szBuf1,serverIP.data());
-		serverIP = szBuf1;
+		//getConfigString("server", "IP",szBuf1,serverIP.data());
+		//serverIP = szBuf1;
 
 		getConfigString("server", "serverSN", szBuf1,"BS20220001");
 		serverSN = szBuf1;
@@ -73,14 +73,14 @@ public:
 	std::string serverSN;
 	SyncVector<CameraOBJ*> m_Cameras;
 	SyncMap<std::string,CameraOBJ*> m_cameraMap;
-	std::string serverIP="127.0.0.1";
-	int         serverPort=1983;
+	//std::string serverIP="127.0.0.1";
+	//int         serverPort=1983;
 	int monitorTHreadTime = 1000;
 	int reStartHour = 2;
 	int reStartMinute = 58;
 	int reStartSecond = 58;
 
-	int localPort=2345;
+	//int localPort=2345;
 
 private:
 	bool bWriteIni = false;
@@ -141,9 +141,9 @@ private:
 		//In door
 		for (int i = 0; i < cameraCount; i++)
 		{
-			sprintf_s(szKey, "ip_%d", i );
+			sprintf_s(szKey, "ip%d", i );
 
-			nret = getConfigString("in", szKey, szBuf1);
+			nret = getConfigString("main", szKey, szBuf1);
 			if (nret < 7)//1.1.1.1
 			{
 				m_logger->info("read ip_{} error, skip", i);
@@ -170,41 +170,7 @@ private:
 			}
 			ipValid = true;
 		}
-		//out door
-		for (int i = 0; i < cameraCount; i++)
-		{
-			sprintf_s(szKey, "ip_%d", i);
-
-			nret = getConfigString("out", szKey, szBuf1);
-			if (nret < 7)//1.1.1.1
-			{
-				m_logger->info("read ip_{} error, skip", i);
-				if (!bWriteIni)continue;;
-			}
-			std::vector<std::string> ipArr = pLoadIP(szBuf1);
-			if (ipArr.empty())continue;
-			int j = 0;
-			CameraOBJ* masterObj = nullptr;
-
-			for (auto item : ipArr)
-			{
-				CameraOBJ* obj = new CameraOBJ();
-				obj->isIn = false;
-				if (j == 0)
-					masterObj = obj;
-				obj->isMaster = j == 0;
-
-				obj->masterObj = masterObj;
-				obj->ip = item;
-				obj->camera->m_curID = m_Cameras.size();
-				strcpy(obj->camera->m_ipaddrstr, item.data());
-				m_Cameras.emplace_back(obj);
-				m_cameraMap.emplace(item, obj);
-
-				j++;
-			}
-			ipValid = true;
-		}
+		
 
 
 		if (!ipValid)

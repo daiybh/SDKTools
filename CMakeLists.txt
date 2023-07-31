@@ -9,6 +9,8 @@ project(SDKTOOLS
 
 find_package(spdlog CONFIG REQUIRED)
 find_package(fmt CONFIG REQUIRED)
+find_package(httplib CONFIG REQUIRED)
+ find_package(nlohmann_json CONFIG REQUIRED)
 
 
 file(GLOB_RECURSE source_cpp "Sources/*.cpp")
@@ -22,6 +24,9 @@ target_include_directories(SDKTOOLS PRIVATE wu_camera-sdk/inc)
 target_link_directories(SDKTOOLS PRIVATE wu_camera-sdk/lib)
 target_link_libraries(SDKTOOLS PRIVATE spdlog::spdlog_header_only)
 target_link_libraries(SDKTOOLS PRIVATE fmt::fmt-header-only)
+target_link_libraries(SDKTOOLS PRIVATE httplib::httplib)
+target_link_libraries(SDKTOOLS PRIVATE nlohmann_json::nlohmann_json)
+
 
 target_compile_features(SDKTOOLS PRIVATE cxx_std_17)
 

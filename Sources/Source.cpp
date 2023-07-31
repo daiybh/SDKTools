@@ -75,9 +75,9 @@ BOOL WINAPI CtrlHandler(DWORD fdwCtrlType)
 	}
 }
 #include "mainctrl.h"
+#include "httpClient.h"
 int main(int argc, char *argv[])
 {
-
 	HANDLE mutex = OpenMutexA(MUTEX_ALL_ACCESS, FALSE, "store.hyman.sdk_TOOLs.Mutex");
 	if (mutex == nullptr)
 		mutex = CreateMutexA(nullptr, FALSE, "store.hyman.sdk_TOOLs.Mutex");
