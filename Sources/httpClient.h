@@ -1,5 +1,6 @@
 #pragma  once
 #include <string>
+#include "../wu_camera-sdk/inc/logLib.h"
 namespace HttpClient {
 
 	struct ResponseItem
@@ -11,5 +12,5 @@ namespace HttpClient {
 		std::string token;
 	};
 
-	 ResponseItem isInDsBlack(std::string ip, std::string plateNumber);
+	 ResponseItem isInDsBlack(simplyLogger _logger,std::string ip, std::string plateNumber);
 };

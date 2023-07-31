@@ -171,7 +171,7 @@ void __stdcall MainCtrl::NET_SMARTRECVCALLBACK_EX(NET_DEV_SMARTRECRESUT_EX* Smar
 		pCamera->m_curID, cameraOBJ->isIn);
 	for (int i = 0; i < 1; i++)
 	{
-		HttpClient::ResponseItem response=HttpClient::isInDsBlack(SmartResultEx->camerIp, SmartResultEx->platenum);
+		HttpClient::ResponseItem response=HttpClient::isInDsBlack(m_logger,SmartResultEx->camerIp, SmartResultEx->platenum);
 		if (response.state == 0)
 		{
 			m_logger->error("state=0 errormsg={}",response.errmsg );
